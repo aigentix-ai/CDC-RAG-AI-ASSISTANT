@@ -1275,8 +1275,33 @@
         } catch (e) {
           // Keep existing server-formatted date
         }
+    // Static Cloudflare fallback loader for doc_viewer.html?id=...
+    (async function() {
+      if (document.title.includes("{{ doc.title }}")) {
+        const urlParams = new URLSearchParams(window.location.search);
+        const docId = urlParams.get("id") || urlParams.get("doc_id");
+        if (docId) {
+          try {
+            const res = await fetch("knowledge_base.json");
+            const data = await res.json();
+            const found = data.find(d => d.doc_id === docId || (d.doc_id && docId.includes(d.doc_id)));
+            if (found) {
+              document.title = `${found.title} — CDC Pakistan Regulatory Archive`;
+              document.body.innerHTML = document.body.innerHTML
+                .replaceAll("{{ doc.title }}", found.title)
+                .replaceAll("{{ doc.doc_id }}", found.doc_id)
+                .replaceAll("{{ doc.formatted_date }}", found.date_scraped || "Cloudflare Edge Archive")
+                .replaceAll("{{ doc.category }}", found.category || "Regulatory Document")
+                .replaceAll("{{ doc.source_type }}", found.source_type || "pdf")
+                .replaceAll("{{ doc.source_url }}", found.source_url || "#")
+                .replaceAll("{{ doc.text }}", (found.chunks || []).join("\n\n"));
+            }
+          } catch (e) {
+            console.warn("Could not load knowledge_base.json:", e);
+          }
+        }
       }
-    }
+    })();
   </script>
 </body>
 </html>

@@ -3058,15 +3058,43 @@
 
     async function loadIndexedDocs() {
       try {
-        const res = await fetch('/admin/api/indexed');
-        if (!res.ok) return;
-        const data = await res.json();
-        allIndexedDocs = data.documents || [];
-        renderIndexedDocs(allIndexedDocs);
-        updateIndexedCounter(allIndexedDocs.length);
-        const filterInput = document.getElementById('indexedTableFilter');
-        if (filterInput && filterInput.value.trim()) {
-          filterIndexedTable();
+        let data = null;
+        try {
+          const res = await fetch('/admin/api/indexed');
+          if (res.ok) {
+            data = await res.json();
+          }
+        } catch (fetchErr) {}
+
+        if (!data || !data.documents || data.documents.length === 0) {
+          try {
+            const fallbackRes = await fetch('knowledge_base.json');
+            if (fallbackRes.ok) {
+              const fbDocs = await fallbackRes.json();
+              data = {
+                documents: fbDocs.map(d => ({
+                  doc_id: d.doc_id,
+                  title: d.title,
+                  source_url: d.source_url,
+                  source_type: d.source_type,
+                  date_scraped: d.date_scraped,
+                  category: d.category,
+                  chunk_count: (d.chunks || []).length,
+                  sample_chunk: (d.chunks && d.chunks[0]) ? d.chunks[0].slice(0, 180) + '...' : ''
+                }))
+              };
+            }
+          } catch (e) {}
+        }
+
+        if (data && data.documents) {
+          allIndexedDocs = data.documents || [];
+          renderIndexedDocs(allIndexedDocs);
+          updateIndexedCounter(allIndexedDocs.length);
+          const filterInput = document.getElementById('indexedTableFilter');
+          if (filterInput && filterInput.value.trim()) {
+            filterIndexedTable();
+          }
         }
       } catch (err) {
         console.error("Error loading indexed docs:", err);
