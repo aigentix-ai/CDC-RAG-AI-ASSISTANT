@@ -22,7 +22,7 @@ function getResolvedApiUrl() {
   return API_BASE_URL;
 }
 
-const RESOLVED_API_URL = getResolvedApiUrl();
+let RESOLVED_API_URL = getResolvedApiUrl();
 
 document.addEventListener("DOMContentLoaded", () => {
   const chatMain = document.getElementById("chatMain");
@@ -499,7 +499,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (status === 404) {
       return {
         title: "Service Endpoint Not Found",
-        message: "The regulatory service could not be located at the configured address. Please verify service settings."
+        message: "The regulatory service could not be located at the configured address. If you are viewing this on Cloudflare Pages, please click 'Server Settings' in the top header and enter your live backend or Cloudflare Tunnel URL."
       };
     }
 
@@ -649,6 +649,76 @@ document.addEventListener("DOMContentLoaded", () => {
       questionInput.focus();
     }
   });
+
+  // --------------------------------------------------------------------------
+  // Server Settings Modal Handler
+  // --------------------------------------------------------------------------
+  const serverSettingsBtn = document.getElementById("serverSettingsBtn");
+  const settingsModal = document.getElementById("settingsModal");
+  const closeSettingsBtn = document.getElementById("closeSettingsBtn");
+  const backendUrlInput = document.getElementById("backendUrlInput");
+  const saveBackendBtn = document.getElementById("saveBackendBtn");
+  const resetBackendBtn = document.getElementById("resetBackendBtn");
+  const settingsStatusMsg = document.getElementById("settingsStatusMsg");
+
+  if (serverSettingsBtn && settingsModal) {
+    serverSettingsBtn.addEventListener("click", () => {
+      const current = localStorage.getItem("cdc_backend_url") || localStorage.getItem("cdc_api_url") || window.location.origin;
+      if (backendUrlInput) {
+        backendUrlInput.value = current.replace(/\/ask\/?$/, "");
+      }
+      if (settingsStatusMsg) settingsStatusMsg.innerHTML = "";
+      settingsModal.showModal();
+    });
+
+    closeSettingsBtn?.addEventListener("click", () => {
+      settingsModal.close();
+    });
+
+    saveBackendBtn?.addEventListener("click", async () => {
+      const val = (backendUrlInput?.value || "").trim().replace(/\/$/, "");
+      if (!val) {
+        localStorage.removeItem("cdc_backend_url");
+        localStorage.removeItem("cdc_api_url");
+        RESOLVED_API_URL = getResolvedApiUrl();
+        if (settingsStatusMsg) settingsStatusMsg.innerHTML = "<span style='color:#10b981;'>Reset to default same-origin.</span>";
+        setTimeout(() => settingsModal.close(), 800);
+        return;
+      }
+      if (settingsStatusMsg) settingsStatusMsg.innerHTML = "<span style='color:#38bdf8;'>Testing connection...</span>";
+      try {
+        const ping = await fetch(`${val}/health`, { method: "GET" });
+        if (ping.ok) {
+          localStorage.setItem("cdc_backend_url", val);
+          localStorage.setItem("cdc_api_url", `${val}/ask`);
+          RESOLVED_API_URL = getResolvedApiUrl();
+          if (settingsStatusMsg) settingsStatusMsg.innerHTML = "<span style='color:#10b981;'>Connected successfully! (200 OK)</span>";
+          setTimeout(() => settingsModal.close(), 1000);
+        } else {
+          localStorage.setItem("cdc_backend_url", val);
+          localStorage.setItem("cdc_api_url", `${val}/ask`);
+          RESOLVED_API_URL = getResolvedApiUrl();
+          if (settingsStatusMsg) settingsStatusMsg.innerHTML = "<span style='color:#f59e0b;'>Saved! Endpoint configured.</span>";
+          setTimeout(() => settingsModal.close(), 1200);
+        }
+      } catch (e) {
+        localStorage.setItem("cdc_backend_url", val);
+        localStorage.setItem("cdc_api_url", `${val}/ask`);
+        RESOLVED_API_URL = getResolvedApiUrl();
+        if (settingsStatusMsg) settingsStatusMsg.innerHTML = "<span style='color:#38bdf8;'>Saved URL! (Will connect when server is online)</span>";
+        setTimeout(() => settingsModal.close(), 1200);
+      }
+    });
+
+    resetBackendBtn?.addEventListener("click", () => {
+      localStorage.removeItem("cdc_backend_url");
+      localStorage.removeItem("cdc_api_url");
+      RESOLVED_API_URL = getResolvedApiUrl();
+      if (backendUrlInput) backendUrlInput.value = window.location.origin;
+      if (settingsStatusMsg) settingsStatusMsg.innerHTML = "<span style='color:#10b981;'>Cleared custom backend.</span>";
+      setTimeout(() => settingsModal.close(), 800);
+    });
+  }
 
   // Initial focus on input
   questionInput.focus();
