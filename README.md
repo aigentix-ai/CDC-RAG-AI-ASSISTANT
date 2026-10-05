@@ -78,8 +78,8 @@ cdc-rag-demo/
 
 ### 2. Clone & Install
 ```bash
-git clone https://github.com/MaazDurrani45/cdc-rag-demo.git
-cd cdc-rag-demo
+git clone https://github.com/aigentix-ai/CDC-RAG-AI-ASSISTANT.git
+cd CDC-RAG-AI-ASSISTANT
 
 # Create virtual environment
 python -m venv .venv
