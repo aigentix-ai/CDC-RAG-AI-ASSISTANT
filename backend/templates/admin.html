@@ -1,0 +1,4368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CDC Regulatory Admin — Document Management</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-main: #060b17;
+      --bg-surface: #0e172e;
+      --bg-card: #13203e;
+      --bg-card-hover: #192a52;
+      --bg-glass: rgba(14, 23, 46, 0.75);
+      
+      --border-subtle: #1e315b;
+      --border-highlight: rgba(255, 255, 255, 0.08);
+      --border-focus: #3b82f6;
+      --border-glow: rgba(59, 130, 246, 0.35);
+
+      --text-primary: #f8fafc;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      
+      --accent-blue: #2563eb;
+      --accent-blue-hover: #1d4ed8;
+      --accent-blue-glow: rgba(37, 99, 235, 0.35);
+
+      --accent-emerald: #10b981;
+      --accent-emerald-dark: #065f46;
+      --accent-emerald-glow: rgba(16, 185, 129, 0.3);
+
+      --accent-amber: #f59e0b;
+      --accent-rose: #ef4444;
+      --accent-rose-glow: rgba(239, 68, 68, 0.3);
+      --accent-indigo: #6366f1;
+      --accent-cyan: #06b6d4;
+
+      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --font-display: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+
+      --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.3);
+      --shadow-md: 0 8px 24px -4px rgba(0, 0, 0, 0.45);
+      --shadow-lg: 0 20px 40px -8px rgba(0, 0, 0, 0.6);
+      --shadow-vault: 0 24px 60px -10px rgba(0, 0, 0, 0.8), 0 0 30px rgba(37, 99, 235, 0.15);
+
+      --ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font-sans);
+      background-color: var(--bg-main);
+      background-image: 
+        radial-gradient(circle at 10% 10%, rgba(37, 99, 235, 0.08) 0%, transparent 45%),
+        radial-gradient(circle at 90% 90%, rgba(16, 185, 129, 0.05) 0%, transparent 45%),
+        linear-gradient(180deg, #070d1c 0%, #050914 100%);
+      color: var(--text-primary);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Custom Modern Scrollbars */
+    ::-webkit-scrollbar {
+      width: 7px;
+      height: 7px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #070c18;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #1e315b;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #2d457c;
+    }
+
+    /* Header Bar */
+    .admin-header {
+      background: linear-gradient(180deg, rgba(14, 23, 46, 0.96) 0%, rgba(8, 14, 30, 0.98) 100%);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border-subtle);
+      padding: 0.9rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+    }
+
+    .branding {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .badge-logo {
+      background: linear-gradient(135deg, #1d4ed8 0%, #3b82f6 100%);
+      color: white;
+      width: 42px;
+      height: 42px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-display);
+      font-weight: 800;
+      font-size: 1.15rem;
+      box-shadow: 0 4px 16px rgba(37, 99, 235, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      position: relative;
+    }
+
+    .brand-titles h1 {
+      font-family: var(--font-display);
+      font-size: 1.18rem;
+      font-weight: 700;
+      letter-spacing: -0.015em;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .brand-titles p {
+      font-size: 0.78rem;
+      color: var(--text-secondary);
+      font-weight: 400;
+      margin-top: 1px;
+    }
+
+    .header-links {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+    }
+
+    .btn-assistant {
+      background: rgba(37, 99, 235, 0.14);
+      border: 1px solid rgba(59, 130, 246, 0.4);
+      color: #93c5fd;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      font-size: 0.82rem;
+      text-decoration: none;
+      font-weight: 600;
+      font-family: var(--font-display);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      transition: all 0.2s var(--ease-spring);
+    }
+    .btn-assistant:hover {
+      background: rgba(37, 99, 235, 0.3);
+      color: #ffffff;
+      border-color: #60a5fa;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+    }
+
+    /* Container & Segmented Navigation */
+    .admin-container {
+      max-width: 1280px;
+      margin: 1.75rem auto;
+      padding: 0 1.5rem 3rem;
+      width: 100%;
+      flex: 1;
+    }
+
+    .tabs-nav {
+      display: flex;
+      gap: 0.4rem;
+      background: rgba(14, 23, 46, 0.75);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 5px;
+      margin-bottom: 2rem;
+      backdrop-filter: blur(12px);
+      box-shadow: var(--shadow-sm);
+      overflow-x: auto;
+    }
+
+    .tab-btn {
+      background: transparent;
+      border: none;
+      border-radius: 8px;
+      color: var(--text-secondary);
+      padding: 0.65rem 1.25rem;
+      font-size: 0.88rem;
+      font-family: var(--font-display);
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.55rem;
+      transition: all 0.2s var(--ease-spring);
+      white-space: nowrap;
+    }
+
+    .tab-btn:hover {
+      color: #ffffff;
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .tab-btn.active {
+      color: #ffffff;
+      background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+      box-shadow: 0 4px 14px rgba(37, 99, 235, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.25);
+    }
+
+    .pill-counter {
+      background: rgba(239, 68, 68, 0.25);
+      color: #fca5a5;
+      border: 1px solid rgba(239, 68, 68, 0.4);
+      font-size: 0.72rem;
+      padding: 0.12rem 0.5rem;
+      border-radius: 12px;
+      font-weight: 700;
+      font-family: var(--font-mono);
+      line-height: 1;
+    }
+    .pill-counter.zero {
+      background: rgba(100, 116, 139, 0.2);
+      border-color: rgba(100, 116, 139, 0.3);
+      color: var(--text-muted);
+    }
+    .tab-btn.active .pill-counter {
+      background: rgba(255, 255, 255, 0.25);
+      color: #ffffff;
+      border-color: rgba(255, 255, 255, 0.4);
+    }
+
+    /* Tab Content Panels */
+    .tab-pane {
+      display: none;
+      animation: fadeInPane 0.25s var(--ease-spring);
+    }
+    .tab-pane.active {
+      display: block;
+    }
+
+    @keyframes fadeInPane {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Forms & Cards Grid */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: 14px;
+      padding: 1.6rem;
+      box-shadow: var(--shadow-md), inset 0 1px 0 var(--border-highlight);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.3), transparent);
+    }
+
+    .card-title {
+      font-family: var(--font-display);
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 0.35rem;
+      display: flex;
+      align-items: center;
+      gap: 0.55rem;
+      color: #ffffff;
+      letter-spacing: -0.01em;
+    }
+
+    .card-desc {
+      font-size: 0.83rem;
+      color: var(--text-secondary);
+      margin-bottom: 1.35rem;
+      line-height: 1.5;
+    }
+
+    .form-group {
+      margin-bottom: 1.15rem;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 0.76rem;
+      font-weight: 700;
+      color: var(--text-secondary);
+      margin-bottom: 0.45rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .form-control {
+      width: 100%;
+      background: #091224;
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      padding: 0.75rem 0.95rem;
+      color: var(--text-primary);
+      font-size: 0.9rem;
+      font-family: inherit;
+      transition: all 0.2s var(--ease-spring);
+    }
+
+    .form-control:focus {
+      outline: none;
+      border-color: var(--border-focus);
+      background: #0c172e;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+    }
+
+    .form-control::placeholder {
+      color: #475569;
+    }
+
+    .btn-submit {
+      background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 0.75rem 1.4rem;
+      font-size: 0.9rem;
+      font-weight: 700;
+      font-family: var(--font-display);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.55rem;
+      transition: all 0.2s var(--ease-spring);
+      width: 100%;
+      justify-content: center;
+      box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
+    }
+    .btn-submit:hover:not(:disabled) {
+      background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 18px rgba(37, 99, 235, 0.5);
+    }
+    .btn-submit:active:not(:disabled) {
+      transform: scale(0.98);
+    }
+    .btn-submit:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    /* Jobs Section */
+    .jobs-section {
+      margin-top: 2.25rem;
+    }
+
+    .section-title {
+      font-family: var(--font-display);
+      font-size: 1.15rem;
+      font-weight: 700;
+      margin-bottom: 1.1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: #ffffff;
+    }
+
+    .job-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.85rem;
+    }
+
+    .job-item {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      padding: 1.1rem 1.35rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: all 0.2s var(--ease-spring);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .job-item:hover {
+      background: var(--bg-card-hover);
+      border-color: #2e467d;
+      transform: translateY(-1px);
+    }
+
+    .job-info {
+      flex: 1;
+      margin-right: 1.5rem;
+    }
+
+    .job-header-line {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 0.45rem;
+      flex-wrap: wrap;
+    }
+
+    .job-target {
+      font-family: var(--font-display);
+      font-weight: 600;
+      font-size: 0.92rem;
+      color: var(--text-primary);
+      word-break: break-all;
+    }
+
+    .job-meta {
+      font-size: 0.78rem;
+      color: var(--text-secondary);
+      display: flex;
+      gap: 1.25rem;
+      font-family: var(--font-mono);
+    }
+
+    .progress-bar-wrap {
+      width: 100%;
+      height: 7px;
+      background: #081022;
+      border-radius: 4px;
+      margin-top: 0.65rem;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: var(--accent-blue);
+      border-radius: 4px;
+      transition: width 0.3s ease;
+    }
+    .progress-fill.processing {
+      background: linear-gradient(90deg, #2563eb 0%, #60a5fa 50%, #2563eb 100%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+    }
+    .progress-fill.done { background: var(--accent-emerald); }
+    .progress-fill.failed { background: var(--accent-rose); }
+
+    @keyframes shimmer {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
+    /* Status Badges */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.22rem 0.6rem;
+      border-radius: 6px;
+      font-size: 0.73rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      font-family: var(--font-mono);
+    }
+    .badge-pending { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); }
+    .badge-processing { background: rgba(59, 130, 246, 0.18); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.35); }
+    .badge-done { background: rgba(16, 185, 129, 0.18); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.35); }
+    .badge-failed { background: rgba(239, 68, 68, 0.18); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.35); }
+    .badge-type { background: rgba(99, 102, 241, 0.18); color: #a5b4fc; border: 1px solid rgba(99, 102, 241, 0.3); }
+
+    /* Tables */
+    .table-container {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      overflow-x: auto;
+      box-shadow: var(--shadow-sm);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 0.88rem;
+    }
+
+    th {
+      background: #0c162e;
+      padding: 0.95rem 1.15rem;
+      color: var(--text-secondary);
+      font-weight: 700;
+      font-size: 0.74rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      border-bottom: 1px solid var(--border-subtle);
+      font-family: var(--font-display);
+    }
+
+    td {
+      padding: 1rem 1.15rem;
+      border-bottom: 1px solid rgba(30, 49, 91, 0.6);
+      color: var(--text-primary);
+      vertical-align: middle;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    tr:hover td {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .actions-cell {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .btn-action {
+      border: none;
+      padding: 0.42rem 0.85rem;
+      border-radius: 6px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      font-family: var(--font-display);
+      cursor: pointer;
+      transition: all 0.15s var(--ease-spring);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+
+    .btn-approve-staged {
+      background: rgba(14, 165, 233, 0.15);
+      border: 1px solid rgba(14, 165, 233, 0.4);
+      color: #38bdf8;
+    }
+    .btn-approve-staged:hover {
+      background: #0284c7;
+      color: white;
+      box-shadow: 0 4px 12px rgba(14, 165, 233, 0.35);
+    }
+
+    .btn-approve {
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      color: #34d399;
+    }
+    .btn-approve:hover {
+      background: var(--accent-emerald);
+      color: white;
+      box-shadow: 0 4px 12px var(--accent-emerald-glow);
+    }
+
+    .btn-reject {
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid rgba(239, 68, 68, 0.4);
+      color: #f87171;
+    }
+    .btn-reject:hover {
+      background: var(--accent-rose);
+      color: white;
+      box-shadow: 0 4px 12px var(--accent-rose-glow);
+    }
+
+    .btn-preview {
+      background: rgba(59, 130, 246, 0.15);
+      border: 1px solid rgba(59, 130, 246, 0.4);
+      color: #60a5fa;
+    }
+    .btn-preview:hover {
+      background: var(--accent-blue);
+      color: white;
+      box-shadow: 0 4px 12px var(--accent-blue-glow);
+    }
+
+    .btn-delete {
+      background: transparent;
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: #f87171;
+    }
+    .btn-delete:hover {
+      background: var(--accent-rose);
+      color: white;
+    }
+
+    /* Modal / Drawer */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(4, 8, 18, 0.85);
+      backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+      padding: 1.5rem;
+    }
+
+    .modal-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: 16px;
+      width: 100%;
+      max-width: 780px;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: var(--shadow-vault);
+      animation: modalScaleUp 0.25s var(--ease-spring);
+    }
+
+    @keyframes modalScaleUp {
+      from { transform: scale(0.96) translateY(10px); opacity: 0; }
+      to { transform: scale(1) translateY(0); opacity: 1; }
+    }
+
+    .modal-header {
+      padding: 1.25rem 1.6rem;
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #0b1428;
+    }
+
+    .modal-title {
+      font-family: var(--font-display);
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #ffffff;
+    }
+
+    .modal-close {
+      background: transparent;
+      border: none;
+      color: var(--text-secondary);
+      font-size: 1.5rem;
+      cursor: pointer;
+      line-height: 1;
+      transition: color 0.15s ease;
+    }
+    .modal-close:hover { color: #ffffff; }
+
+    .modal-body {
+      padding: 1.5rem;
+    }
+
+    .modal-meta {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 0.85rem;
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      padding: 1rem 1.25rem;
+      margin-bottom: 1.25rem;
+      font-size: 0.84rem;
+    }
+
+    .preview-box {
+      background: #060b17;
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      padding: 1rem 1.25rem;
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      line-height: 1.6;
+      color: #cbd5e1;
+      white-space: pre-wrap;
+      max-height: 380px;
+      overflow-y: auto;
+    }
+
+    .modal-footer {
+      padding: 1.25rem 1.6rem;
+      border-top: 1px solid var(--border-subtle);
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.85rem;
+      background: #0b1428;
+    }
+
+    /* Notification Banner */
+    .alert-banner {
+      padding: 0.85rem 1.25rem;
+      border-radius: 8px;
+      margin-bottom: 1.5rem;
+      font-size: 0.88rem;
+      font-weight: 500;
+      display: none;
+      animation: fadeInPane 0.25s var(--ease-spring);
+    }
+    .alert-banner.success { 
+      background: rgba(16, 185, 129, 0.16); 
+      border: 1px solid #10b981; 
+      color: #6ee7b7; 
+      box-shadow: 0 4px 14px var(--accent-emerald-glow);
+    }
+    .alert-banner.error { 
+      background: rgba(239, 68, 68, 0.16); 
+      border: 1px solid #ef4444; 
+      color: #fca5a5; 
+      box-shadow: 0 4px 14px var(--accent-rose-glow);
+    }
+
+    .empty-state {
+      padding: 3.5rem 1.5rem;
+      text-align: center;
+      color: var(--text-secondary);
+    }
+    .empty-icon {
+      font-size: 2.2rem;
+      margin-bottom: 0.65rem;
+      opacity: 0.7;
+    }
+
+    /* Crawler Specific Styles */
+    .chips-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-top: 0.65rem;
+      margin-bottom: 1.25rem;
+    }
+    .chip-btn {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      color: #93c5fd;
+      padding: 0.38rem 0.85rem;
+      border-radius: 20px;
+      font-size: 0.78rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      transition: all 0.15s ease;
+      font-family: inherit;
+      font-weight: 500;
+    }
+    .chip-btn:hover {
+      background: rgba(37, 99, 235, 0.25);
+      border-color: var(--accent-blue);
+      color: #ffffff;
+      transform: translateY(-1px);
+    }
+
+    .crawler-controls-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .toggle-group {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      padding: 0.95rem 1.2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-bottom: 1.35rem;
+    }
+    .toggle-info h4 {
+      font-family: var(--font-display);
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 0.2rem;
+    }
+    .toggle-info p {
+      font-size: 0.76rem;
+      color: var(--text-secondary);
+    }
+
+    /* Switch styling */
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 48px;
+      height: 26px;
+      flex-shrink: 0;
+    }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: #1e293b;
+      border: 1px solid var(--border-subtle);
+      transition: .25s var(--ease-spring);
+      border-radius: 26px;
+    }
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      bottom: 3px;
+      background-color: #94a3b8;
+      transition: .25s var(--ease-spring);
+      border-radius: 50%;
+    }
+    input:checked + .slider {
+      background-color: var(--accent-emerald);
+      border-color: var(--accent-emerald);
+      box-shadow: 0 0 12px var(--accent-emerald-glow);
+    }
+    input:checked + .slider:before {
+      transform: translateX(22px);
+      background-color: #ffffff;
+    }
+
+    .crawler-actions {
+      display: flex;
+      gap: 0.75rem;
+    }
+
+    .btn-stop {
+      background: rgba(239, 68, 68, 0.2);
+      border: 1px solid #ef4444;
+      color: #fca5a5;
+      border-radius: 8px;
+      padding: 0.75rem 1.4rem;
+      font-size: 0.9rem;
+      font-weight: 700;
+      font-family: var(--font-display);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: all 0.2s var(--ease-spring);
+      justify-content: center;
+    }
+    .btn-stop:hover:not(:disabled) {
+      background: rgba(239, 68, 68, 0.4);
+      color: white;
+      box-shadow: 0 4px 14px var(--accent-rose-glow);
+    }
+    .btn-stop:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    /* Metrics Grid */
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 0.85rem;
+      margin-bottom: 1.25rem;
+    }
+    .metric-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      padding: 0.95rem 1.15rem;
+      text-align: center;
+      box-shadow: var(--shadow-sm);
+    }
+    .metric-val {
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: var(--text-primary);
+      font-family: var(--font-mono);
+      line-height: 1.25;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      letter-spacing: -0.02em;
+    }
+    .metric-lbl {
+      font-size: 0.72rem;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-top: 0.35rem;
+      font-weight: 600;
+    }
+
+    /* Terminal Console Window */
+    .terminal-window {
+      background: #040813;
+      border: 1px solid #1a2a4e;
+      border-radius: 10px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      margin-top: 1rem;
+      box-shadow: inset 0 2px 10px rgba(0,0,0,0.8), 0 8px 24px rgba(0,0,0,0.5);
+    }
+    .terminal-header {
+      background: #091224;
+      padding: 0.55rem 1.15rem;
+      border-bottom: 1px solid #1a2a4e;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      font-family: var(--font-mono);
+      letter-spacing: 0.04em;
+    }
+    .terminal-dots {
+      display: flex;
+      gap: 0.45rem;
+    }
+    .terminal-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+    .dot-red { background: #ef4444; }
+    .dot-yellow { background: #f59e0b; }
+    .dot-green { background: #10b981; }
+
+    .terminal-body {
+      padding: 0.95rem 1.15rem;
+      height: 250px;
+      overflow-y: auto;
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      line-height: 1.65;
+      color: #cbd5e1;
+    }
+    .terminal-log-line {
+      display: flex;
+      align-items: baseline;
+      gap: 0.65rem;
+      word-break: break-all;
+    }
+    .terminal-time {
+      color: #64748b;
+      font-size: 0.72rem;
+      flex-shrink: 0;
+    }
+    .terminal-level {
+      font-size: 0.68rem;
+      font-weight: 700;
+      padding: 0.05rem 0.35rem;
+      border-radius: 4px;
+      flex-shrink: 0;
+    }
+    .level-info { background: rgba(59, 130, 246, 0.2); color: #93c5fd; }
+    .level-success { background: rgba(16, 185, 129, 0.2); color: #6ee7b7; }
+    .level-warn { background: rgba(245, 158, 11, 0.2); color: #fcd34d; }
+    .level-error { background: rgba(239, 68, 68, 0.2); color: #fca5a5; }
+
+    .pulse-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent-emerald);
+      display: inline-block;
+      animation: pulseAnim 1.5s infinite;
+      margin-right: 0.4rem;
+    }
+    @keyframes pulseAnim {
+      0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+      70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+      100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+    }
+
+    /* Admin Auth Modal Overlay */
+    .auth-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(4, 7, 16, 0.92);
+      backdrop-filter: blur(14px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s var(--ease-spring);
+    }
+    .auth-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .auth-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: 18px;
+      padding: 2.5rem;
+      width: 100%;
+      max-width: 440px;
+      box-shadow: var(--shadow-vault);
+      text-align: center;
+      position: relative;
+      animation: modalScaleUp 0.3s var(--ease-spring);
+    }
+    .auth-card::before {
+      content: "";
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, #3b82f6, transparent);
+    }
+    .auth-icon {
+      width: 52px;
+      height: 52px;
+      background: linear-gradient(135deg, rgba(37, 99, 235, 0.25) 0%, rgba(59, 130, 246, 0.15) 100%);
+      color: #60a5fa;
+      border: 1px solid rgba(59, 130, 246, 0.35);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 1.25rem;
+      font-size: 1.6rem;
+      box-shadow: 0 4px 16px rgba(37, 99, 235, 0.25);
+    }
+    .auth-title {
+      font-family: var(--font-display);
+      font-size: 1.35rem;
+      font-weight: 700;
+      margin-bottom: 0.45rem;
+      color: #ffffff;
+      letter-spacing: -0.01em;
+    }
+    .auth-desc {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      margin-bottom: 1.75rem;
+      line-height: 1.5;
+    }
+    .auth-error {
+      background: rgba(239, 68, 68, 0.2);
+      border: 1px solid #ef4444;
+      color: #fca5a5;
+      padding: 0.65rem 0.85rem;
+      border-radius: 8px;
+      font-size: 0.82rem;
+      margin-bottom: 1.2rem;
+      display: none;
+    }
+
+    /* Regulatory Category Filter Pills */
+    .category-filter-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      align-items: center;
+      margin-bottom: 1.5rem;
+      padding: 0.85rem 1.15rem;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      box-shadow: var(--shadow-sm);
+    }
+    .filter-label {
+      font-family: var(--font-display);
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-right: 0.35rem;
+    }
+    .cat-pill {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-secondary);
+      padding: 0.4rem 0.85rem;
+      border-radius: 20px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      transition: all 0.15s ease;
+      font-family: inherit;
+    }
+    .cat-pill:hover {
+      border-color: var(--accent-blue);
+      color: #ffffff;
+      background: rgba(37, 99, 235, 0.15);
+    }
+    .cat-pill.active {
+      background: rgba(37, 99, 235, 0.3);
+      border-color: #60a5fa;
+      color: #ffffff;
+      box-shadow: 0 2px 8px var(--accent-blue-glow);
+    }
+
+    /* Category Badges */
+    .cat-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.22rem 0.6rem;
+      border-radius: 6px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+    }
+    .cat-badge-circular { background: rgba(59, 130, 246, 0.15); color: #93c5fd; border: 1px solid rgba(59, 130, 246, 0.3); }
+    .cat-badge-regs { background: rgba(168, 85, 247, 0.15); color: #d8b4fe; border: 1px solid rgba(168, 85, 247, 0.3); }
+    .cat-badge-aml { background: rgba(239, 68, 68, 0.15); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.3); }
+    .cat-badge-trustee { background: rgba(16, 185, 129, 0.15); color: #6ee7b7; border: 1px solid rgba(16, 185, 129, 0.3); }
+    .cat-badge-eservices { background: rgba(245, 158, 11, 0.15); color: #fcd34d; border: 1px solid rgba(245, 158, 11, 0.3); }
+    .cat-badge-gov { background: rgba(100, 116, 139, 0.2); color: #cbd5e1; border: 1px solid rgba(100, 116, 139, 0.3); }
+    .badge-ocr { background: rgba(6, 182, 212, 0.2); color: #67e8f9; border: 1px solid rgba(6, 182, 212, 0.4); font-size: 0.7rem; font-weight: 700; margin-left: 0.35rem; }
+
+    /* Sandbox / Testing Playground */
+    .staged-sandbox-card {
+      background: linear-gradient(135deg, rgba(14, 23, 46, 0.95) 0%, rgba(22, 35, 68, 0.9) 100%);
+      border: 1px solid rgba(99, 102, 241, 0.4);
+      border-radius: 14px;
+      padding: 1.5rem 1.75rem;
+      margin-bottom: 1.75rem;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.4), 0 0 24px rgba(99, 102, 241, 0.15);
+      position: relative;
+    }
+    .staged-sandbox-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.85rem;
+    }
+    .sandbox-tag {
+      background: rgba(99, 102, 241, 0.25);
+      border: 1px solid rgba(99, 102, 241, 0.5);
+      color: #c7d2fe;
+      padding: 0.25rem 0.7rem;
+      border-radius: 6px;
+      font-size: 0.74rem;
+      font-weight: 700;
+      font-family: var(--font-mono);
+      letter-spacing: 0.04em;
+    }
+    .sandbox-input-row {
+      display: flex;
+      gap: 0.85rem;
+      margin-bottom: 1rem;
+    }
+    .sandbox-result {
+      background: #060b17;
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      padding: 1.25rem;
+      font-size: 0.88rem;
+      line-height: 1.65;
+      display: none;
+    }
+    .sandbox-result.active { display: block; }
+    .sandbox-answer {
+      color: #f1f5f9;
+      margin-bottom: 1rem;
+      white-space: pre-wrap;
+    }
+    .sandbox-citations {
+      border-top: 1px solid var(--border-subtle);
+      padding-top: 0.85rem;
+      font-size: 0.78rem;
+      color: var(--text-secondary);
+    }
+    .staged-citation-item {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 6px;
+      padding: 0.65rem 0.95rem;
+      margin-top: 0.55rem;
+    }
+
+    /* Batch Actions Bar */
+    .batch-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      padding: 0.95rem 1.35rem;
+      margin-bottom: 1.5rem;
+      box-shadow: var(--shadow-sm);
+    }
+    .btn-publish-all {
+      background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 0.65rem 1.35rem;
+      font-size: 0.88rem;
+      font-weight: 700;
+      font-family: var(--font-display);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.55rem;
+      transition: all 0.2s var(--ease-spring);
+      box-shadow: 0 4px 16px rgba(16, 185, 129, 0.35);
+    }
+    .btn-publish-all:hover {
+      background: linear-gradient(135deg, #047857 0%, #059669 100%);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(16, 185, 129, 0.5);
+    }
+
+    /* Admin Knowledge Base Search Agent Card */
+    .admin-search-bot-card {
+      background: linear-gradient(135deg, rgba(14, 23, 46, 0.95) 0%, rgba(19, 32, 62, 0.9) 100%);
+      border: 1.5px solid rgba(59, 130, 246, 0.4);
+      border-radius: 14px;
+      padding: 1.4rem 1.65rem;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4), 0 0 20px rgba(59, 130, 246, 0.12);
+    }
+    .search-bot-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.95rem;
+    }
+    .bot-badge-title {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .bot-avatar-icon {
+      font-size: 1.5rem;
+      width: 40px;
+      height: 40px;
+      background: rgba(37, 99, 235, 0.2);
+      border: 1px solid rgba(59, 130, 246, 0.4);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .bot-live-tag {
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid rgba(16, 185, 129, 0.35);
+      color: #34d399;
+      padding: 0.25rem 0.65rem;
+      border-radius: 20px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+    }
+    .search-bot-input-group {
+      display: flex;
+      gap: 0.75rem;
+      margin-bottom: 0.85rem;
+    }
+    .search-chips-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      align-items: center;
+      margin-bottom: 0.5rem;
+    }
+    .search-chip {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border-subtle);
+      color: #94a3b8;
+      padding: 0.3rem 0.75rem;
+      border-radius: 16px;
+      font-size: 0.75rem;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.15s ease;
+    }
+    .search-chip:hover {
+      background: rgba(37, 99, 235, 0.2);
+      border-color: #3b82f6;
+      color: #ffffff;
+    }
+    .admin-bot-result {
+      background: #060b17;
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      padding: 1.25rem;
+      margin-top: 1rem;
+      display: none;
+      animation: fadeIn 0.25s ease-out;
+    }
+    .admin-bot-result.active { display: block; }
+    .admin-bot-answer {
+      color: #f1f5f9;
+      font-size: 0.88rem;
+      line-height: 1.6;
+      white-space: pre-wrap;
+    }
+    .admin-docs-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.85rem;
+      margin-top: 0.75rem;
+    }
+    .top-match-card {
+      background: linear-gradient(135deg, rgba(30, 58, 138, 0.22) 0%, rgba(15, 23, 42, 0.95) 100%);
+      border: 1.5px solid rgba(96, 165, 250, 0.45);
+      border-radius: 10px;
+      padding: 1.1rem 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+      box-shadow: 0 4px 20px rgba(37, 99, 235, 0.15);
+      position: relative;
+      transition: all 0.2s ease;
+    }
+    .top-match-card:hover {
+      border-color: #60a5fa;
+      box-shadow: 0 6px 24px rgba(37, 99, 235, 0.25);
+    }
+    .top-match-flag-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.15rem;
+    }
+    .top-match-flag {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 0.74rem;
+      font-weight: 700;
+      color: #93c5fd;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .match-pill {
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 0.2rem 0.6rem;
+      border-radius: 12px;
+      letter-spacing: 0.02em;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .match-pill-100 {
+      background: rgba(16, 185, 129, 0.18);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.45);
+    }
+    .match-pill-pct {
+      background: rgba(59, 130, 246, 0.18);
+      color: #60a5fa;
+      border: 1px solid rgba(59, 130, 246, 0.4);
+    }
+    .match-pill-mid {
+      background: rgba(245, 158, 11, 0.18);
+      color: #fbbf24;
+      border: 1px solid rgba(245, 158, 11, 0.4);
+    }
+    .btn-go-inside {
+      background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 100%) !important;
+      color: #ffffff !important;
+      border: 1px solid rgba(96, 165, 250, 0.5) !important;
+      font-weight: 600 !important;
+      padding: 0.45rem 1rem !important;
+      border-radius: 6px !important;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
+      transition: all 0.2s ease;
+    }
+    .btn-go-inside:hover {
+      background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%) !important;
+      box-shadow: 0 4px 14px rgba(37, 99, 235, 0.5);
+      transform: translateY(-1px);
+    }
+
+    .doc-result-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      padding: 0.9rem 1.1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      transition: all 0.15s ease;
+    }
+    .doc-result-card:hover {
+      border-color: #3b82f6;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+    .doc-result-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 0.5rem;
+    }
+    .doc-result-title {
+      font-weight: 700;
+      color: #f8fafc;
+      font-size: 0.88rem;
+      line-height: 1.35;
+    }
+    .doc-result-snippet {
+      font-size: 0.78rem;
+      color: #cbd5e1;
+      background: rgba(10, 18, 36, 0.65);
+      padding: 0.5rem 0.75rem;
+      border-radius: 6px;
+      border-left: 2px solid #3b82f6;
+      line-height: 1.45;
+    }
+    .doc-result-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.55rem;
+      margin-top: 0.35rem;
+      flex-wrap: wrap;
+    }
+
+    /* Inside-Document Deep Dive Panel */
+    .inside-doc-panel {
+      background: #030712;
+      border: 1.5px solid #2563eb;
+      border-radius: 12px;
+      padding: 1.35rem;
+      margin-top: 1.15rem;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6), 0 0 24px rgba(37, 99, 235, 0.2);
+      animation: fadeIn 0.3s ease-out;
+      display: none;
+    }
+    .inside-doc-panel.active {
+      display: block;
+    }
+    .inside-doc-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 1rem;
+      padding-bottom: 0.85rem;
+      border-bottom: 1px solid var(--border-subtle);
+      margin-bottom: 1rem;
+    }
+    .inside-doc-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #ffffff;
+      margin: 0 0 0.25rem;
+    }
+    .inside-doc-meta {
+      font-size: 0.76rem;
+      color: var(--text-secondary);
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .inside-doc-bot-box {
+      background: rgba(14, 23, 46, 0.85);
+      border: 1px solid rgba(59, 130, 246, 0.35);
+      border-radius: 8px;
+      padding: 1rem 1.15rem;
+      margin-bottom: 1rem;
+    }
+    .inside-bot-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.74rem;
+      font-weight: 700;
+      color: #60a5fa;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 0.5rem;
+    }
+    .inside-doc-answer {
+      color: #f1f5f9;
+      font-size: 0.88rem;
+      line-height: 1.6;
+    }
+    .inside-ask-group {
+      display: flex;
+      gap: 0.65rem;
+      margin-bottom: 1.15rem;
+    }
+    .inside-doc-pages-container {
+      max-height: 380px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 0.65rem;
+      padding-right: 4px;
+    }
+    .inside-page-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      padding: 0.8rem 1rem;
+      font-size: 0.82rem;
+      color: #cbd5e1;
+      line-height: 1.55;
+    }
+    .inside-page-card.matched-highlight {
+      border-left: 3px solid #3b82f6;
+      background: rgba(30, 58, 138, 0.15);
+    }
+    .inside-page-num {
+      display: inline-block;
+      font-weight: 700;
+      color: #60a5fa;
+      font-size: 0.75rem;
+      margin-bottom: 0.35rem;
+      text-transform: uppercase;
+    }
+    .inside-doc-footer-link {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 1rem;
+      padding-top: 0.75rem;
+      border-top: 1px solid var(--border-subtle);
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+    .table-filter-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.85rem;
+      gap: 1rem;
+    }
+    .row-highlight-pulse {
+      animation: rowPulse 2s ease-in-out 2;
+    }
+    @keyframes rowPulse {
+      0%, 100% { background: transparent; }
+      50% { background: rgba(59, 130, 246, 0.25); }
+    }
+
+    /* Discover Links Modal */
+    /* Discover Links Modal & Collapsible Category Blocks */
+    .discover-list {
+      max-height: 480px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      margin-top: 0.85rem;
+      padding-right: 4px;
+    }
+    .discover-category-block {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      overflow: hidden;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+    .discover-category-block.expanded {
+      border-color: rgba(59, 130, 246, 0.45);
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35);
+    }
+    .discover-category-header {
+      background: #0b1426;
+      padding: 0.85rem 1.15rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: var(--font-display);
+      font-size: 0.88rem;
+      font-weight: 700;
+      user-select: none;
+      transition: background 0.15s ease;
+    }
+    .discover-category-block.expanded .discover-category-header {
+      background: #111e3c;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+    .cat-toggle-btn {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-subtle);
+      color: #94a3b8;
+      border-radius: 6px;
+      padding: 0.3rem 0.65rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.74rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-family: inherit;
+    }
+    .cat-toggle-btn:hover {
+      background: rgba(59, 130, 246, 0.15);
+      border-color: #3b82f6;
+      color: #ffffff;
+    }
+    .cat-chevron-icon {
+      transition: transform 0.25s var(--ease-spring);
+    }
+    .discover-category-block.expanded .cat-chevron-icon {
+      transform: rotate(180deg);
+    }
+    .discover-links-sublist {
+      display: none; /* Collapsed by default — prevents cutting off text */
+      background: rgba(5, 9, 19, 0.85);
+    }
+    .discover-category-block.expanded .discover-links-sublist {
+      display: block;
+      animation: fadeIn 0.2s ease-out;
+    }
+    .discover-link-row {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+      padding: 0.8rem 1.15rem;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      font-size: 0.84rem;
+      line-height: 1.45;
+      transition: background 0.15s ease;
+    }
+    .discover-link-row:last-child { border-bottom: none; }
+    .discover-link-row:hover { background: rgba(255,255,255,0.03); }
+
+  </style>
+</head>
+<body>
+
+  <!-- Admin Authentication Modal -->
+  <div id="adminAuthModal" class="auth-overlay">
+    <div class="auth-card">
+      <div class="auth-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          <rect x="9" y="11" width="6" height="5" rx="1"/>
+          <path d="M10 11V9a2 2 0 1 1 4 0v2"/>
+        </svg>
+      </div>
+      <div style="margin-bottom: 0.5rem;">
+        <span class="badge" style="background: rgba(37, 99, 235, 0.2); color: #93c5fd; border: 1px solid rgba(59, 130, 246, 0.35); font-size: 0.7rem; padding: 2px 8px; border-radius: 12px;">ADMIN ACCESS</span>
+      </div>
+      <h2 class="auth-title">Admin Sign In</h2>
+      <p class="auth-desc">Enter your administrator password to continue.</p>
+      <div id="authErrorMsg" class="auth-error"></div>
+      <form id="adminLoginForm">
+        <div class="form-group" style="text-align: left; margin-bottom: 1.35rem;">
+          <label class="form-label" for="adminPwdInput">Password</label>
+          <div style="position: relative;">
+            <input type="password" id="adminPwdInput" class="form-control" placeholder="Enter password" required autofocus autocomplete="current-password" style="padding-left: 2.5rem; padding-right: 2.6rem;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); pointer-events: none;">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+            <button type="button" id="togglePwdVisibility" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: transparent; border: none; color: #64748b; cursor: pointer; padding: 4px; display: flex; align-items: center;" title="Toggle password visibility">
+              <svg id="eyeIcon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+        <button type="submit" id="authSubmitBtn" class="btn-submit" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;">
+          <span>Sign In</span>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M5 12h14"/>
+            <path d="m12 5 7 7-7 7"/>
+          </svg>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Top Header -->
+  <header class="admin-header">
+    <div class="branding">
+      <div class="badge-logo">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          <path d="m9 12 2 2 4-4"/>
+        </svg>
+      </div>
+      <div class="brand-titles">
+        <h1>CDC Regulatory Admin</h1>
+        <p>Document Management &bull; Review Queue &bull; Knowledge Base</p>
+      </div>
+    </div>
+    <div class="header-telemetry" style="display: flex; gap: 1rem; align-items: center;">
+      <div style="display: flex; align-items: center; gap: 6px; font-size: 0.74rem; color: #94a3b8; font-family: var(--font-mono); background: rgba(10, 18, 36, 0.6); padding: 4px 10px; border-radius: 20px; border: 1px solid var(--border-subtle);">
+        <span class="pulse-dot" style="margin: 0; width: 6px; height: 6px;"></span>
+        <span>DATABASE: ONLINE</span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 6px; font-size: 0.74rem; color: #94a3b8; font-family: var(--font-mono); background: rgba(10, 18, 36, 0.6); padding: 4px 10px; border-radius: 20px; border: 1px solid var(--border-subtle);">
+        <span style="width: 6px; height: 6px; border-radius: 50%; background: #06b6d4; display: inline-block;"></span>
+        <span>DOCUMENT OCR: ACTIVE</span>
+      </div>
+    </div>
+    <div class="header-links">
+      <button id="adminLogoutBtn" class="btn-assistant" style="background: rgba(239,68,68,0.15); border-color: rgba(239,68,68,0.4); color: #fca5a5; cursor: pointer; display: none;">Log Out 🔒</button>
+      <a href="/" class="btn-assistant" target="_blank">Open Assistant Chat ↗</a>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="admin-container">
+
+    <!-- Global Notification Banner -->
+    <div id="alertBanner" class="alert-banner"></div>
+
+    <!-- Tabs Navigation -->
+    <nav class="tabs-nav">
+      <button class="tab-btn active" data-tab="tab-upload">
+        <span>Upload &amp; Add Links</span>
+      </button>
+      <button class="tab-btn" data-tab="tab-review">
+        <span>Review Queue</span>
+        <span id="pendingCounter" class="pill-counter zero">0</span>
+      </button>
+      <button class="tab-btn" data-tab="tab-indexed" aria-label="What's Indexed">
+        <span>Published Documents</span>
+        <span id="indexedCounter" class="pill-counter zero">0</span>
+      </button>
+      <button class="tab-btn" data-tab="tab-crawler">
+        <span>Web Crawler</span>
+        <span id="crawlerBadge" class="pill-counter zero">Ready</span>
+      </button>
+    </nav>
+
+    <!-- TAB 1: SUBMIT & UPLOAD -->
+    <section id="tab-upload" class="tab-pane active">
+      <div class="grid-2">
+        <!-- Form 1: Submit Link -->
+        <div class="card">
+          <h2 class="card-title">🔗 Add Web Link</h2>
+          <p class="card-desc">Add a link to an SECP Circular or CDC Notice (PDF or Web Page).</p>
+          <form id="urlForm">
+            <div class="form-group">
+              <label class="form-label" for="docUrl">Web URL</label>
+              <input type="url" id="docUrl" class="form-control" placeholder="https://example.gov.pk/circular-12.pdf" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="docLabel">Title / Display Name (Optional)</label>
+              <input type="text" id="docLabel" class="form-control" placeholder="e.g. SECP Circular 12 of 2025">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="docType">Format</label>
+              <select id="docType" class="form-control">
+                <option value="auto">Auto-Detect</option>
+                <option value="pdf">PDF Document</option>
+                <option value="html">HTML Web Page</option>
+              </select>
+            </div>
+            <button type="submit" id="submitUrlBtn" class="btn-submit">
+              <span>Add Link to Review Queue</span>
+            </button>
+          </form>
+        </div>
+
+        <!-- Form 2: Upload File -->
+        <div class="card">
+          <h2 class="card-title">📄 Upload Document</h2>
+          <p class="card-desc">Upload a regulatory PDF or document from your computer.</p>
+          <form id="fileForm" enctype="multipart/form-data">
+            <div class="form-group">
+              <label class="form-label" for="fileInput">Choose File</label>
+              <input type="file" id="fileInput" class="form-control" accept=".pdf,.html,.htm,.txt,.md,.json" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="fileLabel">Title / Display Name (Optional)</label>
+              <input type="text" id="fileLabel" class="form-control" placeholder="e.g. CDC Trustee Oversight Guidelines">
+            </div>
+            <div class="form-group" style="visibility: hidden;">
+              <!-- Spacing placeholder for grid symmetry -->
+              <label class="form-label">Type</label>
+              <div class="form-control">File Upload</div>
+            </div>
+            <button type="submit" id="uploadFileBtn" class="btn-submit">
+              <span>Upload File to Review Queue</span>
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Live Job Tracker Section -->
+      <div class="jobs-section">
+        <div class="section-title">
+          <span>Recent Uploads &amp; Jobs</span>
+          <button id="refreshJobsBtn" class="btn-action btn-preview">Refresh Status</button>
+        </div>
+        <div id="jobsList" class="job-list">
+          <div class="empty-state">
+            <div class="empty-icon">⏳</div>
+            <p>No recent jobs. Add a link or upload a file above.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 2: REVIEW QUEUE -->
+    <section id="tab-review" class="tab-pane">
+      <div class="section-title">
+        <div>
+          <span>Documents Awaiting Review</span>
+          <p style="font-size: 0.8rem; color: var(--text-secondary); font-weight: normal; margin-top: 0.2rem;">
+            Documents here are in draft and won't appear in the assistant until approved.
+          </p>
+        </div>
+        <div style="display: flex; gap: 0.5rem; align-items: center;">
+          <button type="button" id="toggleSandboxBtn" class="btn-action" style="background: rgba(99, 102, 241, 0.2); border: 1px solid #6366f1; color: #c7d2fe;" onclick="toggleStagedSandbox()">
+            🧪 Test Drafts
+          </button>
+          <button id="refreshQueueBtn" class="btn-action btn-preview">Refresh Queue</button>
+        </div>
+      </div>
+
+      <!-- STAGED DRAFT TESTING SANDBOX (PLAYGROUND) -->
+      <div id="stagedSandboxCard" class="staged-sandbox-card">
+        <div class="staged-sandbox-header">
+          <div>
+            <span class="sandbox-tag">🧪 TEST DRAFTS</span>
+            <strong style="margin-left: 0.5rem; font-size: 0.95rem;">Test Question Against Draft Documents</strong>
+          </div>
+          <span style="font-size: 0.74rem; color: #94a3b8;">Drafts only — does not affect published docs</span>
+        </div>
+        <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 0.85rem;">
+          Ask a question to see how the assistant answers using newly added draft documents before publishing them.
+        </p>
+        <div class="sandbox-input-row">
+          <input type="text" id="stagedTestInput" class="form-control" placeholder="e.g. What are the KYC requirements in the staged circular?" style="flex: 1;">
+          <button type="button" id="stagedTestBtn" class="btn-action btn-approve" style="padding: 0.65rem 1.25rem;" onclick="runStagedTestQuery()">
+            <span>Run Test</span>
+          </button>
+        </div>
+        <div id="stagedTestOutput" class="sandbox-result">
+          <div style="font-weight: 700; color: #60a5fa; margin-bottom: 0.5rem; font-size: 0.85rem;">Draft Response:</div>
+          <div id="stagedTestAnswer" class="sandbox-answer"></div>
+          <div id="stagedTestCitations" class="sandbox-citations"></div>
+        </div>
+      </div>
+
+      <!-- CATEGORY FILTER BAR -->
+      <div class="category-filter-bar" id="categoryFilterBar">
+        <span class="filter-label">Category:</span>
+        <button type="button" class="cat-pill active" data-category="all" onclick="filterReviewByCategory('all')">
+          All (<span id="catCountAll">0</span>)
+        </button>
+      </div>
+
+      <!-- BATCH ACTIONS / PUBLISH ALL BAR -->
+      <div id="batchPublishBar" class="batch-bar" style="display: none;">
+        <div>
+          <strong id="batchBarTitle" style="color: #f8fafc; font-size: 0.9rem;">0 Documents Ready to Publish</strong>
+          <p style="font-size: 0.78rem; color: var(--text-secondary); margin-top: 0.15rem;">
+            Make these documents available to the assistant?
+          </p>
+        </div>
+        <button type="button" id="publishAllBtn" class="btn-publish-all" onclick="publishAllStaged()">
+          <span>Publish All (Make Live)</span>
+        </button>
+      </div>
+
+      <!-- REVIEW QUEUE TABLE -->
+      <div class="table-container">
+        <table id="queueTable">
+          <thead>
+            <tr>
+              <th>Title / Source</th>
+              <th>Category</th>
+              <th>Format</th>
+              <th>Sections</th>
+              <th>Date Added</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="queueTableBody">
+            <tr>
+              <td colspan="6" class="empty-state">
+                <div class="empty-icon">✅</div>
+                <p>Review queue is clear. No documents waiting for approval.</p>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- TAB 3: WHAT'S INDEXED -->
+    <section id="tab-indexed" class="tab-pane">
+      <div class="section-title">
+        <div>
+          <span>Published Regulatory Documents</span>
+          <p style="font-size: 0.8rem; color: var(--text-secondary); font-weight: normal; margin-top: 0.2rem;">
+            These documents are actively used by the assistant to answer questions.
+          </p>
+        </div>
+        <button id="refreshIndexedBtn" class="btn-action btn-preview">Refresh List</button>
+      </div>
+
+      <!-- Interactive Admin Document Search Agent -->
+      <div class="admin-search-bot-card">
+        <div class="search-bot-header">
+          <div class="bot-badge-title">
+            <span class="bot-avatar-icon">🤖</span>
+            <div>
+              <strong style="font-size: 0.95rem; color: #f8fafc;">Document Search Assistant</strong>
+              <p style="font-size: 0.78rem; color: var(--text-secondary); margin: 0.15rem 0 0;">
+                Ask naturally to find published PDFs &amp; circulars by topic, rule, or name
+              </p>
+            </div>
+          </div>
+          <span class="bot-live-tag">Knowledge Base Bot</span>
+        </div>
+
+        <div class="search-bot-input-group">
+          <div style="position: relative; flex: 1;">
+            <input
+              type="text"
+              id="adminSearchInput"
+              class="form-control"
+              placeholder="Ask the bot (e.g. 'Do we have any PDF that mentions reconciliation rules?' or 'Find SECP Circular 12')..."
+              autocomplete="off"
+            >
+          </div>
+          <button type="button" id="adminSearchBtn" class="btn-action btn-approve" onclick="runAdminDocSearch()">
+            <span>Ask Assistant 🔍</span>
+          </button>
+        </div>
+
+        <!-- Quick seed questions -->
+        <div class="search-chips-row">
+          <span style="font-size: 0.74rem; color: var(--text-muted); align-self: center;">Try asking:</span>
+          <button type="button" class="search-chip" onclick="setAdminSearchQuery('Do we have any PDF that mentions reconciliation rules?')">📋 Reconciliation Rules PDF?</button>
+          <button type="button" class="search-chip" onclick="setAdminSearchQuery('Do we have any document about KYC, PEP or AML penalties?')">🛡️ KYC &amp; AML Penalties</button>
+          <button type="button" class="search-chip" onclick="setAdminSearchQuery('Find any document with the name Trustee')">🏛️ Trustee Guidelines</button>
+          <button type="button" class="search-chip" onclick="setAdminSearchQuery('List all SECP Circulars')">📜 SECP Circulars</button>
+        </div>
+
+        <!-- Dynamic Output Container -->
+        <div id="adminSearchOutput" class="admin-bot-result">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.6rem;">
+            <div style="font-weight: 700; color: #60a5fa; font-size: 0.85rem; display: flex; align-items: center; gap: 6px;">
+              <span>🤖 Assistant Answer:</span>
+            </div>
+            <span id="adminSearchCountBadge" class="badge" style="background: rgba(37, 99, 235, 0.2); color: #93c5fd;">0 documents matched</span>
+          </div>
+          <div id="adminSearchAnswer" class="admin-bot-answer"></div>
+          
+          <div id="adminSearchDocsSection" style="margin-top: 1rem; border-top: 1px solid var(--border-subtle); padding-top: 0.85rem;">
+            <div style="font-size: 0.76rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.65rem;">
+              Matching Documents in Knowledge Base:
+            </div>
+            <div id="adminSearchDocsList" class="admin-docs-list"></div>
+          </div>
+
+          <!-- Inside-Document Deep Dive Panel (Goes Inside Document & Answers There) -->
+          <div id="adminInsideDocPanel" class="inside-doc-panel">
+            <div class="inside-doc-header">
+              <div>
+                <h4 id="insideDocTitle" class="inside-doc-title">Document Title</h4>
+                <div id="insideDocMeta" class="inside-doc-meta">
+                  <span id="insideDocTypeBadge" class="badge badge-type">PDF</span>
+                  <span id="insideDocPagesCount">0 Pages</span>
+                  <span id="insideDocMatchPill" class="match-pill match-pill-pct">94% Match</span>
+                </div>
+              </div>
+              <button type="button" class="btn-action" style="background: rgba(255,255,255,0.06); border: 1px solid var(--border-subtle); color: var(--text-secondary);" onclick="closeDocInside()">
+                ✕ Close Inside View
+              </button>
+            </div>
+
+            <!-- Bot Answer Strictly From Inside This Document -->
+            <div class="inside-doc-bot-box">
+              <div class="inside-bot-badge">🤖 Bot Answer From Inside This Document</div>
+              <div id="insideDocAnswer" class="inside-doc-answer">Loading inside analysis...</div>
+            </div>
+
+            <!-- Ask Inside This Document Input -->
+            <div class="inside-ask-group">
+              <input
+                type="text"
+                id="insideDocQueryInput"
+                class="form-control"
+                placeholder="Ask anything specifically inside this document (e.g. what are the penalties or rules?)..."
+                autocomplete="off"
+              />
+              <button type="button" id="insideDocAskBtn" class="btn-action btn-go-inside" onclick="askInsideCurrentDoc()">
+                <span>Ask Inside 💬</span>
+              </button>
+            </div>
+
+            <!-- Extracted Pages / Sections -->
+            <div>
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                <span style="font-size: 0.76rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase;">
+                  Verified Extracted Pages &amp; Sections:
+                </span>
+                <span id="insideDocSectionsCount" style="font-size: 0.72rem; color: var(--text-muted);"></span>
+              </div>
+              <div id="insideDocPagesContainer" class="inside-doc-pages-container"></div>
+            </div>
+
+            <!-- Subtle Raw File Link -->
+            <div class="inside-doc-footer-link">
+              <span>Need the complete original unedited file?</span>
+              <a id="insideDocRawLink" href="#" target="_blank" style="color: #60a5fa; text-decoration: none; font-weight: 600;">
+                View Original Raw PDF File ↗
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Filter Bar for Table -->
+      <div class="table-filter-bar">
+        <div style="position: relative; max-width: 340px; width: 100%;">
+          <input
+            type="text"
+            id="indexedTableFilter"
+            class="form-control"
+            placeholder="Quick filter table by title or source..."
+            oninput="filterIndexedTable()"
+            style="padding-left: 2rem; font-size: 0.84rem; height: 38px;"
+          >
+          <span style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); font-size: 0.82rem; color: #64748b; pointer-events: none;">🔍</span>
+        </div>
+        <div id="tableFilterCount" style="font-size: 0.78rem; color: var(--text-secondary);">Showing all documents</div>
+      </div>
+
+      <div class="table-container">
+        <table id="indexedTable">
+          <thead>
+            <tr>
+              <th>Document Title</th>
+              <th>Source Reference</th>
+              <th>Type</th>
+              <th>Sections</th>
+              <th>Date Published</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="indexedTableBody">
+            <tr>
+              <td colspan="6" class="empty-state">
+                <div class="empty-icon">📂</div>
+                <p>No documents published yet.</p>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- TAB 4: WEB CRAWLER -->
+    <section id="tab-crawler" class="tab-pane">
+      <div class="grid-2">
+        <!-- Card 1: Configuration -->
+        <div class="card">
+          <h2 class="card-title">🌐 Web Crawler</h2>
+          <p class="card-desc">Automatically find and download regulatory circulars and PDFs from a website.</p>
+          
+          <form id="crawlerForm">
+            <div class="form-group">
+              <label class="form-label" for="crawlerRootUrl">Starting Website URL</label>
+              <input type="url" id="crawlerRootUrl" class="form-control" placeholder="https://cdcpakistan.com" required>
+              
+              <!-- Quick Select Chips -->
+              <div class="chips-container">
+                <span style="font-size: 0.72rem; color: var(--text-muted); align-self: center;">Quick Links:</span>
+                <button type="button" class="chip-btn" onclick="setCrawlerUrl('https://cdcpakistan.com')">🏛️ CDC Pakistan</button>
+                <button type="button" class="chip-btn" onclick="setCrawlerUrl('https://www.secp.gov.pk/document-category/circulars/')">📜 SECP Circulars</button>
+                <button type="button" class="chip-btn" onclick="setCrawlerUrl('https://cdcpakistan.com/regulations/')">⚖️ CDC Regulations</button>
+                <button type="button" class="chip-btn" onclick="setCrawlerUrl('https://pdfobject.com/pdf/sample.pdf')">📑 Sample PDF</button>
+              </div>
+            </div>
+
+            <div class="crawler-controls-row">
+              <div class="form-group">
+                <label class="form-label" for="crawlerMaxPages">Max Pages</label>
+                <select id="crawlerMaxPages" class="form-control">
+                  <option value="20">20 pages</option>
+                  <option value="50" selected>50 pages (Recommended)</option>
+                  <option value="100">100 pages</option>
+                  <option value="250">250 pages</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="crawlerSpeed">Crawl Speed</label>
+                <select id="crawlerSpeed" class="form-control">
+                  <option value="2.0">Slow (2s delay)</option>
+                  <option value="1.5" selected>Normal (1.5s delay)</option>
+                  <option value="0.8">Fast (0.8s delay)</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Stealth Human Simulation (Anti-Block) Toggle -->
+            <div class="toggle-group" style="margin-bottom: 0.85rem; border-color: rgba(99, 102, 241, 0.35); background: rgba(99, 102, 241, 0.08);">
+              <div class="toggle-info">
+                <div style="display: flex; align-items: center; gap: 6px;">
+                  <h4 style="color: #c7d2fe;">🥷 Stealth Human Simulation</h4>
+                  <span class="badge" style="background: rgba(16, 185, 129, 0.2); color: #34d399; font-size: 0.65rem; padding: 2px 6px;">Anti-Block</span>
+                </div>
+                <p>Simulates smooth human scrolling, reading cadence, mouse movement, and auto-clicks disclaimers &amp; collapsed regulatory accordions.</p>
+              </div>
+              <label class="switch">
+                <input type="checkbox" id="crawlerStealthMode" checked>
+                <span class="slider"></span>
+              </label>
+            </div>
+
+            <!-- Ingestion Destination Toggle -->
+            <div class="toggle-group">
+              <div class="toggle-info">
+                <h4>Publish Directly</h4>
+                <p>When OFF: sends documents to Review Queue. When ON: publishes directly.</p>
+              </div>
+              <label class="switch">
+                <input type="checkbox" id="crawlerAutoApprove">
+                <span class="slider"></span>
+              </label>
+            </div>
+
+            <!-- Action Controls -->
+            <div class="crawler-actions" style="display: flex; flex-direction: column; gap: 0.65rem;">
+              <button type="button" id="discoverLinksBtn" class="btn-action" style="background: rgba(99, 102, 241, 0.2); border: 1px solid #6366f1; color: #c7d2fe; padding: 0.65rem 1rem; border-radius: 6px; font-size: 0.88rem; justify-content: center;" onclick="openDiscoverModal()">
+                <span>🔍 Choose Categories &amp; Links First</span>
+              </button>
+              <div style="display: flex; gap: 0.75rem;">
+                <button type="submit" id="startCrawlBtn" class="btn-submit" style="flex: 2;">
+                  <span>Start Crawl</span>
+                </button>
+                <button type="button" id="stopCrawlBtn" class="btn-stop" style="flex: 1;" disabled onclick="stopActiveCrawler()">
+                  <span>Stop Crawl</span>
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+
+        <!-- Card 2: Live Progress Monitor -->
+        <div class="card">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
+            <h2 class="card-title" style="margin-bottom: 0;">Crawler Progress</h2>
+            <div style="display: flex; gap: 0.5rem; align-items: center;">
+              <div id="crawlerStageBadge" class="badge" style="background: rgba(99, 102, 241, 0.2); color: #c7d2fe;">Stage: Idle</div>
+              <div id="crawlerLiveStatusBadge" class="badge badge-pending">Idle</div>
+            </div>
+          </div>
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; margin-bottom: 0.5rem;">
+            <p class="card-desc" id="crawlerActiveTargetDesc" style="margin: 0; flex: 1;">Ready to start. Enter a URL and click Start Crawl.</p>
+            <a id="crawlerCurrentUrlLink" href="#" target="_blank" rel="noopener noreferrer" style="display: none; font-size: 0.78rem; color: #60a5fa; text-decoration: underline; white-space: nowrap; font-weight: 500;">
+              Open Target URL ↗
+            </a>
+          </div>
+
+          <!-- Cloudflare Captcha / Turnstile Alert Banner -->
+          <div id="crawlerCaptchaAlert" style="display: none; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); border-radius: 8px; padding: 1rem; margin-bottom: 1.1rem;">
+            <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; flex-wrap: wrap;">
+              <div style="flex: 1; min-width: 260px;">
+                <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.35rem;">
+                  <span style="font-size: 1.2rem;">🛡️</span>
+                  <strong style="color: #fca5a5; font-size: 0.95rem;">Cloudflare Verification Challenge Detected</strong>
+                </div>
+                <p style="font-size: 0.82rem; color: #cbd5e1; margin-bottom: 0.5rem;">
+                  The website presented a human verification challenge (Turnstile / Cloudflare challenge). Please open the link in your browser to complete verification, then click <strong>Resume Crawl</strong>.
+                </p>
+                <div style="font-size: 0.8rem; color: #94a3b8; word-break: break-all; margin-bottom: 0.5rem;">
+                  Blocked URL: <a id="captchaBlockedUrlLink" href="#" target="_blank" rel="noopener noreferrer" class="font-mono" style="color: #93c5fd; text-decoration: underline; font-weight: 600;"></a>
+                  <span id="captchaBlockedUrlText" style="display: none;"></span>
+                </div>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 0.45rem; flex-shrink: 0;">
+                <a id="captchaOpenAnchor" href="#" target="_blank" rel="noopener noreferrer" class="btn-action btn-preview" style="padding: 0.5rem 0.9rem; font-size: 0.8rem; background: #3b82f6; color: white; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 0.3rem;">
+                  🌐 Open Page in Browser ↗
+                </a>
+                <button type="button" class="btn-action" onclick="copyCaptchaLink()" style="padding: 0.4rem 0.8rem; font-size: 0.75rem; background: rgba(255,255,255,0.08); color: #e2e8f0; border: 1px solid rgba(255,255,255,0.2);">
+                  📋 Copy URL
+                </button>
+                <button type="button" class="btn-action btn-approve" onclick="resumeActiveCrawler()" style="padding: 0.5rem 0.9rem; font-size: 0.8rem;">
+                  ▶️ Resume Crawl
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Progress Bar -->
+          <div style="margin-bottom: 1.1rem;">
+            <div style="display: flex; justify-content: space-between; font-size: 0.78rem; margin-bottom: 0.3rem;">
+              <span id="crawlerProgressLabel" style="color: var(--text-secondary);">Progress</span>
+              <span id="crawlerProgressPercent" style="font-weight: 700; color: #60a5fa;">0%</span>
+            </div>
+            <div class="progress-bar-wrap" style="height: 8px;">
+              <div id="crawlerProgressBar" class="progress-fill" style="width: 0%;"></div>
+            </div>
+          </div>
+
+          <!-- Metrics Counters -->
+          <div class="metric-grid" style="grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));">
+            <div class="metric-card">
+              <div id="metricPages" class="metric-val">0</div>
+              <div class="metric-lbl">Pages Visited</div>
+            </div>
+            <div class="metric-card">
+              <div id="metricPdfs" class="metric-val">0</div>
+              <div class="metric-lbl">PDFs Found</div>
+            </div>
+            <div class="metric-card">
+              <div id="metricChunks" class="metric-val">0</div>
+              <div class="metric-lbl">Sections Saved</div>
+            </div>
+            <div class="metric-card">
+              <div id="metricEta" class="metric-val" style="color: #60a5fa;">--</div>
+              <div class="metric-lbl">Estimated Time</div>
+            </div>
+            <div class="metric-card">
+              <div id="metricSpeed" class="metric-val" style="color: #34d399;">0 p/s</div>
+              <div class="metric-lbl">Pages / Sec</div>
+            </div>
+            <div class="metric-card">
+              <div id="metricErrors" class="metric-val" style="color: #fca5a5;">0</div>
+              <div class="metric-lbl">Errors / Skipped</div>
+            </div>
+          </div>
+
+          <!-- Real-Time URL Log Console -->
+          <div class="terminal-window">
+            <div class="terminal-header">
+              <div class="terminal-dots">
+                <div class="terminal-dot dot-red"></div>
+                <div class="terminal-dot dot-yellow"></div>
+                <div class="terminal-dot dot-green"></div>
+              </div>
+              <div>ACTIVITY LOG</div>
+              <button type="button" onclick="clearCrawlerLogs()" style="background: transparent; border: none; color: #64748b; cursor: pointer; font-size: 0.72rem;">Clear</button>
+            </div>
+            <div id="crawlerTerminalBody" class="terminal-body">
+              <div class="terminal-log-line">
+                <span class="terminal-time">READY</span>
+                <span class="terminal-level level-info">IDLE</span>
+                <span>Crawler ready on standby. Configure parameters and click Start Crawl.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent Crawl Sessions Table -->
+      <div class="jobs-section">
+        <div class="section-title">
+          <span>Recent Crawls</span>
+          <button id="refreshCrawlJobsBtn" class="btn-action btn-preview" onclick="loadCrawlJobs()">Refresh Crawls</button>
+        </div>
+        <div class="table-container">
+          <table id="crawlerJobsTable">
+            <thead>
+              <tr>
+                <th>Job ID</th>
+                <th>Target Website</th>
+                <th>Status</th>
+                <th>Pages</th>
+                <th>PDFs</th>
+                <th>Sections</th>
+                <th>Mode</th>
+                <th>Started</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="crawlerJobsTableBody">
+              <tr>
+                <td colspan="9" class="empty-state">
+                  <div class="empty-icon">🌐</div>
+                  <p>No crawls recorded yet. Start a crawl above.</p>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Review Preview Modal -->
+  <div id="previewModal" class="modal-overlay">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="modalTitle" class="modal-title">Document Preview</h3>
+        <button id="closeModalBtn" class="modal-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="modal-meta">
+          <div><strong>Source:</strong> <span id="modalSource" style="word-break: break-all;"></span></div>
+          <div><strong>Doc ID:</strong> <span id="modalDocId" class="font-mono"></span></div>
+          <div><strong>Category:</strong> <span id="modalCategory"></span></div>
+          <div><strong>Type:</strong> <span id="modalType"></span></div>
+          <div><strong>Sections:</strong> <span id="modalChunks"></span></div>
+        </div>
+        <h4 style="font-size: 0.82rem; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 0.4rem;">
+          Text Preview:
+        </h4>
+        <div id="modalPreviewBox" class="preview-box"></div>
+      </div>
+      <div class="modal-footer" style="display: flex; gap: 0.6rem; justify-content: flex-end; align-items: center;">
+        <button id="modalRejectBtn" class="btn-action btn-reject" title="Discard this document and purge from staging">Reject</button>
+        <button id="modalApproveOnlyBtn" class="btn-action btn-approve-staged" title="Approve for staging without publishing to live assistant">Approve Only</button>
+        <button id="modalApproveLiveBtn" class="btn-action btn-approve" title="Approve and immediately index into live Chroma">Approve &amp; Live</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pre-Crawl Link Discovery & Category Approval Modal -->
+  <div id="discoverModal" class="modal-overlay">
+    <div class="modal-card" style="max-width: 860px;">
+      <div class="modal-header">
+        <div>
+          <h3 class="modal-title">🔍 Select Links to Crawl</h3>
+          <p style="font-size: 0.78rem; color: var(--text-secondary); margin-top: 0.2rem;">
+            Select the categories and links you want to crawl. Unchecked links will be skipped.
+          </p>
+        </div>
+        <button class="modal-close" onclick="closeDiscoverModal()">&times;</button>
+      </div>
+      <div class="modal-body" style="padding: 1.25rem 1.5rem;">
+        <div id="discoverLoading" style="text-align: center; padding: 2.5rem; display: none;">
+          <div style="font-size: 2rem; margin-bottom: 0.5rem;">🌐</div>
+          <strong>Scanning website for links...</strong>
+          <p style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.35rem;">Gathering and organizing links. Please wait a moment.</p>
+        </div>
+        <div id="discoverContent" style="display: none;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; background: var(--bg-card); padding: 0.75rem 1rem; border-radius: 6px;">
+            <div>
+              <span style="font-size: 0.85rem; font-weight: 600;">Discovered <span id="discoverTotalCount">0</span> Links on <span id="discoverDomainName" class="font-mono" style="color: #60a5fa;"></span></span>
+            </div>
+            <div style="display: flex; gap: 0.45rem; flex-wrap: wrap;">
+              <button type="button" class="btn-action btn-preview" onclick="toggleAllDiscoverCheckboxes(true)" style="font-size: 0.74rem;">Select All</button>
+              <button type="button" class="btn-action" onclick="toggleAllDiscoverCheckboxes(false)" style="font-size: 0.74rem; background: transparent; border: 1px solid var(--border-subtle); color: var(--text-secondary);">Deselect All</button>
+              <button type="button" class="btn-action" onclick="toggleAllCategoryAccordions(true)" style="font-size: 0.74rem; background: rgba(59,130,246,0.15); border: 1px solid rgba(59,130,246,0.35); color: #93c5fd;">Expand All ▾</button>
+              <button type="button" class="btn-action" onclick="toggleAllCategoryAccordions(false)" style="font-size: 0.74rem; background: transparent; border: 1px solid var(--border-subtle); color: var(--text-secondary);">Collapse All ▴</button>
+            </div>
+          </div>
+
+          <!-- Smart Filter & Fast Selection Controls -->
+          <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 0.75rem 1rem; margin-bottom: 0.85rem;">
+            <div style="display: flex; gap: 0.6rem; align-items: center; margin-bottom: 0.6rem;">
+              <div style="position: relative; flex: 1;">
+                <input type="text" id="discoverFilterInput" placeholder="🔍 Search links or keywords (e.g. pdf, regulation, circular, tariff, act)..." oninput="filterDiscoverLinks(this.value)" style="width: 100%; padding: 0.45rem 2rem 0.45rem 0.75rem; font-size: 0.82rem; background: var(--bg-input); border: 1px solid var(--border-subtle); border-radius: 6px; color: var(--text-primary);">
+                <button type="button" onclick="clearDiscoverFilter()" style="position: absolute; right: 0.5rem; top: 50%; transform: translateY(-50%); background: transparent; border: none; color: #94a3b8; cursor: pointer; font-size: 0.9rem;" title="Clear filter">&times;</button>
+              </div>
+              <span id="discoverFilterStatus" style="font-size: 0.75rem; color: #94a3b8; white-space: nowrap;"></span>
+            </div>
+            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center;">
+              <span style="font-size: 0.72rem; color: var(--text-secondary); text-transform: uppercase; font-weight: 600; letter-spacing: 0.05em;">Smart Presets:</span>
+              <button type="button" class="btn-action" onclick="toggleAllDiscoverCheckboxes(true)" style="font-size: 0.74rem; background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.4); color: #34d399;">
+                ✓ Select All
+              </button>
+              <button type="button" class="btn-action" onclick="toggleAllDiscoverCheckboxes(false)" style="font-size: 0.74rem; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); color: #f87171;">
+                ✕ Deselect All
+              </button>
+              <button type="button" class="btn-action" onclick="selectOnlyPdfs()" style="font-size: 0.74rem; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.35); color: #fca5a5;">
+                📑 Select All PDFs Only
+              </button>
+              <button type="button" class="btn-action" onclick="selectOnlyRegulations()" style="font-size: 0.74rem; background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.35); color: #6ee7b7;">
+                ⚖️ Select Regulation Pages
+              </button>
+              <button type="button" id="selectFilteredBtn" class="btn-action" onclick="selectFilteredLinks()" style="font-size: 0.74rem; background: rgba(99, 102, 241, 0.15); border: 1px solid rgba(99, 102, 241, 0.35); color: #c7d2fe; display: none;">
+                ✓ Select Filtered
+              </button>
+            </div>
+          </div>
+
+          <div id="discoverCategoriesList" class="discover-list"></div>
+        </div>
+      </div>
+      <div class="modal-footer" style="justify-content: space-between;">
+        <div style="font-size: 0.85rem; color: var(--text-secondary); align-self: center;">
+          <strong id="discoverSelectedCount" style="color: #34d399;">0</strong> of <span id="discoverFooterTotal">0</span> links approved
+        </div>
+        <div style="display: flex; gap: 0.75rem;">
+          <button type="button" class="btn-action" onclick="closeDiscoverModal()" style="background: transparent; border: 1px solid var(--border-subtle); color: var(--text-secondary);">Cancel</button>
+          <button type="button" id="startApprovedCrawlBtn" class="btn-submit" style="width: auto; padding: 0.65rem 1.5rem;" onclick="launchApprovedCrawl()">
+            <span>🚀 Scrape Approved Links Only</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // --------------------------------------------------------------------------
+    // State Management & Polling
+    // --------------------------------------------------------------------------
+    let activePollingInterval = null;
+    let currentPreviewItemId = null;
+
+    function showAlert(message, type = 'success') {
+      const banner = document.getElementById('alertBanner');
+      banner.textContent = message;
+      banner.className = `alert-banner ${type}`;
+      banner.style.display = 'block';
+      setTimeout(() => { banner.style.display = 'none'; }, 4500);
+    }
+
+    // Tab Switching
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+        btn.classList.add('active');
+        const pane = document.getElementById(btn.getAttribute('data-tab'));
+        if (pane) pane.classList.add('active');
+
+        // Refresh tab-specific data
+        if (btn.getAttribute('data-tab') === 'tab-review') loadReviewQueue();
+        if (btn.getAttribute('data-tab') === 'tab-indexed') loadIndexedDocs();
+        if (btn.getAttribute('data-tab') === 'tab-crawler') loadCrawlJobs();
+      });
+    });
+
+    // --------------------------------------------------------------------------
+    // Form Submissions
+    // --------------------------------------------------------------------------
+    document.getElementById('urlForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const url = document.getElementById('docUrl').value.trim();
+      const label = document.getElementById('docLabel').value.trim();
+      const docType = document.getElementById('docType').value;
+      const btn = document.getElementById('submitUrlBtn');
+
+      if (!url) return;
+      btn.disabled = true;
+
+      try {
+        const res = await fetch('/admin/api/submit-url', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url, label, doc_type: docType })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          showAlert(`Job queued: ${data.job_id}. Tracking progress...`);
+          document.getElementById('docUrl').value = '';
+          document.getElementById('docLabel').value = '';
+          loadJobs();
+          startJobPolling();
+        } else {
+          showAlert(data.error || 'Failed to submit URL', 'error');
+        }
+      } catch (err) {
+        showAlert(`Error: ${err.message}`, 'error');
+      } finally {
+        btn.disabled = false;
+      }
+    });
+
+    document.getElementById('fileForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const fileInput = document.getElementById('fileInput');
+      const label = document.getElementById('fileLabel').value.trim();
+      const btn = document.getElementById('uploadFileBtn');
+
+      if (!fileInput.files || fileInput.files.length === 0) return;
+      btn.disabled = true;
+
+      const formData = new FormData();
+      formData.append('file', fileInput.files[0]);
+      if (label) formData.append('label', label);
+
+      try {
+        const res = await fetch('/admin/api/upload', {
+          method: 'POST',
+          body: formData
+        });
+        const data = await res.json();
+        if (res.ok) {
+          showAlert(`File uploaded! Job queued: ${data.job_id}. Tracking progress...`);
+          fileInput.value = '';
+          document.getElementById('fileLabel').value = '';
+          loadJobs();
+          startJobPolling();
+        } else {
+          showAlert(data.error || 'Failed to upload file', 'error');
+        }
+      } catch (err) {
+        showAlert(`Error: ${err.message}`, 'error');
+      } finally {
+        btn.disabled = false;
+      }
+    });
+
+    // --------------------------------------------------------------------------
+    // Background Jobs Tracker
+    // --------------------------------------------------------------------------
+    async function loadJobs() {
+      try {
+        const res = await fetch('/admin/api/jobs');
+        if (!res.ok) return;
+        const data = await res.json();
+        renderJobs(data.jobs || []);
+      } catch (err) {
+        console.error("Error loading jobs:", err);
+      }
+    }
+
+    function renderJobs(jobs) {
+      const container = document.getElementById('jobsList');
+      if (!jobs || jobs.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-icon">⏳</div>
+            <p>No active or recent jobs.</p>
+          </div>`;
+        return;
+      }
+
+      container.innerHTML = jobs.map(j => {
+        let badgeClass = 'badge-pending';
+        if (j.status === 'processing') badgeClass = 'badge-processing';
+        if (j.status === 'done') badgeClass = 'badge-done';
+        if (j.status === 'failed') badgeClass = 'badge-failed';
+
+        return `
+          <div class="job-item">
+            <div class="job-info">
+              <div class="job-header-line">
+                <span class="badge ${badgeClass}">${j.status}</span>
+                <span class="badge badge-type">${j.type}</span>
+                <span class="job-target">${j.title || j.target}</span>
+              </div>
+              <div class="job-meta">
+                <span>ID: ${j.job_id}</span>
+                <span>${j.message}</span>
+                <span>${j.created_at}</span>
+              </div>
+              <div class="progress-bar-wrap">
+                <div class="progress-fill ${j.status}" style="width: ${j.progress}%;"></div>
+              </div>
+            </div>
+            <div>
+              ${j.status === 'done' ? `
+                <button class="btn-action btn-approve" onclick="switchToReviewQueue()">Review Item →</button>
+              ` : ''}
+              ${j.status === 'failed' ? `
+                <span style="color: #f87171; font-size: 0.78rem;">Failed</span>
+              ` : ''}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function startJobPolling() {
+      if (activePollingInterval) clearInterval(activePollingInterval);
+      activePollingInterval = setInterval(async () => {
+        await loadJobs();
+        await updateCounters();
+        // Stop polling if no pending/processing jobs remain
+        const res = await fetch('/admin/api/jobs');
+        if (res.ok) {
+          const d = await res.json();
+          const hasActive = (d.jobs || []).some(j => j.status === 'pending' || j.status === 'processing');
+          if (!hasActive) {
+            clearInterval(activePollingInterval);
+            activePollingInterval = null;
+          }
+        }
+      }, 1500);
+    }
+
+    document.getElementById('refreshJobsBtn').addEventListener('click', loadJobs);
+
+    // --------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
+    // Review Queue & Regulatory Categorization
+    // --------------------------------------------------------------------------
+    let currentCategoryFilter = 'all';
+    let allPendingItems = [];
+
+    function toggleStagedSandbox() {
+      const card = document.getElementById('stagedSandboxCard');
+      if (!card) return;
+      card.style.display = (card.style.display === 'none') ? 'block' : 'none';
+      if (card.style.display !== 'none') {
+        const input = document.getElementById('stagedTestInput');
+        if (input) input.focus();
+      }
+    }
+
+    function filterReviewByCategory(cat) {
+      currentCategoryFilter = cat;
+      document.querySelectorAll('.cat-pill').forEach(btn => {
+        if (btn.getAttribute('data-category') === cat) btn.classList.add('active');
+        else btn.classList.remove('active');
+      });
+      loadReviewQueue(cat);
+    }
+
+    function getCategoryIcon(cat) {
+      const c = (cat || "").toLowerCase();
+      if (c.includes("circular") || c.includes("directive") || c.includes("notice") || c.includes("sro")) return "📜";
+      if (c.includes("regulation") || c.includes("rule") || c.includes("law") || c.includes("procedure") || c.includes("cds")) return "⚖️";
+      if (c.includes("aml") || c.includes("cft") || c.includes("kyc") || c.includes("compliance") || c.includes("cdd")) return "🛡️";
+      if (c.includes("trustee") || c.includes("custodial") || c.includes("custody") || c.includes("reit") || c.includes("vps")) return "🏛️";
+      if (c.includes("eservice") || c.includes("portal") || c.includes("eipo") || c.includes("edividend") || c.includes("digital")) return "💻";
+      if (c.includes("form") || c.includes("download")) return "📥";
+      if (c.includes("investor") || c.includes("education")) return "🎓";
+      if (c.includes("governance") || c.includes("board") || c.includes("profile") || c.includes("corporate")) return "🏢";
+      return "📁";
+    }
+
+    function updateCategoryCounts(items) {
+      const counts = { 'all': items.length };
+      items.forEach(item => {
+        const cat = item.category || 'General';
+        counts[cat] = (counts[cat] || 0) + 1;
+      });
+
+      const filterBar = document.getElementById('categoryFilterBar');
+      if (filterBar) {
+        const activeCat = currentCategoryFilter || 'all';
+        const isAllActive = (activeCat === 'all');
+
+        let pillsHtml = `
+          <span class="filter-label">Category:</span>
+          <button type="button" class="cat-pill ${isAllActive ? 'active' : ''}" data-category="all" onclick="filterReviewByCategory('all')">
+            All (<span id="catCountAll">${items.length}</span>)
+          </button>
+        `;
+
+        const catNames = Object.keys(counts).filter(k => k !== 'all').sort();
+        catNames.forEach(cat => {
+          const isActive = (activeCat === cat);
+          const icon = getCategoryIcon(cat);
+          pillsHtml += `
+            <button type="button" class="cat-pill ${isActive ? 'active' : ''}" data-category="${escapeHtml(cat)}" onclick="filterReviewByCategory('${escapeHtml(cat)}')">
+              ${icon} ${escapeHtml(cat)} (${counts[cat]})
+            </button>
+          `;
+        });
+
+        filterBar.innerHTML = pillsHtml;
+      }
+
+      // Show/Hide Batch Publish Bar
+      const batchBar = document.getElementById('batchPublishBar');
+      const batchTitle = document.getElementById('batchBarTitle');
+      if (batchBar && batchTitle) {
+        if (items.length > 0) {
+          batchBar.style.display = 'flex';
+          batchTitle.textContent = `${items.length} Staged Document${items.length === 1 ? '' : 's'} Ready for Production`;
+        } else {
+          batchBar.style.display = 'none';
+        }
+      }
+    }
+
+    function getCategoryBadge(cat) {
+      const c = cat || "General";
+      const icon = getCategoryIcon(c);
+      const cl = c.toLowerCase();
+      let badgeClass = "cat-badge-gov";
+      if (cl.includes("circular") || cl.includes("directive") || cl.includes("notice") || cl.includes("sro")) badgeClass = "cat-badge-circular";
+      else if (cl.includes("regulation") || cl.includes("rule") || cl.includes("law") || cl.includes("cds")) badgeClass = "cat-badge-regs";
+      else if (cl.includes("aml") || cl.includes("cft") || cl.includes("kyc") || cl.includes("compliance")) badgeClass = "cat-badge-aml";
+      else if (cl.includes("trustee") || cl.includes("custodial") || cl.includes("reit")) badgeClass = "cat-badge-trustee";
+      else if (cl.includes("eservice") || cl.includes("portal") || cl.includes("eipo") || cl.includes("digital")) badgeClass = "cat-badge-eservices";
+
+      return `<span class="cat-badge ${badgeClass}">${icon} ${escapeHtml(c)}</span>`;
+    }
+
+    async function loadReviewQueue(category = null) {
+      if (category !== null) currentCategoryFilter = category;
+      try {
+        const url = (currentCategoryFilter && currentCategoryFilter !== 'all')
+          ? `/admin/api/pending?category=${encodeURIComponent(currentCategoryFilter)}`
+          : '/admin/api/pending';
+        const res = await fetch(url);
+        if (!res.ok) return;
+        const data = await res.json();
+        renderReviewQueue(data.pending || []);
+
+        // Also fetch all items once to calculate category badge counts
+        const allRes = await fetch('/admin/api/pending');
+        if (allRes.ok) {
+          const allData = await allRes.json();
+          allPendingItems = allData.pending || [];
+          updateCategoryCounts(allPendingItems);
+          updateReviewCounter(allPendingItems.length);
+        }
+      } catch (err) {
+        console.error("Error loading review queue:", err);
+      }
+    }
+
+    function renderReviewQueue(items) {
+      const tbody = document.getElementById('queueTableBody');
+      if (!items || items.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="6" class="empty-state">
+              <div class="empty-icon">✅</div>
+              <p>Review queue is clear for this category. No items pending approval.</p>
+            </td>
+          </tr>`;
+        return;
+      }
+
+      tbody.innerHTML = items.map(item => {
+        const isPdf = item.source_type === 'pdf';
+        const hasOcr = (item.title && item.title.toLowerCase().includes('scanned')) || (item.preview_text && item.preview_text.includes('[OCR'));
+        const formatBadge = isPdf
+          ? `<span class="badge badge-type">PDF</span>${hasOcr ? '<span class="badge badge-ocr">👁️ OCR</span>' : ''}`
+          : `<span class="badge badge-type">HTML</span>`;
+
+        const isStagedApproved = (item.status === 'staged_approved');
+        const statusBadge = isStagedApproved
+          ? `<span class="badge" style="background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.35); font-size: 0.68rem; margin-left: 0.35rem;">✅ Approved (Staged)</span>`
+          : `<span class="badge" style="background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.35); font-size: 0.68rem; margin-left: 0.35rem;">⏳ Pending Review</span>`;
+
+        return `
+          <tr id="queueRow_${item.id}">
+            <td>
+              <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 0.25rem;">
+                <strong>${escapeHtml(item.title || 'Untitled')}</strong>
+                ${statusBadge}
+              </div>
+              <div style="font-size: 0.74rem; color: var(--text-secondary); word-break: break-all; margin-top: 2px;">
+                ${item.source.startsWith('http') ? `<a href="${escapeHtml(item.source)}" target="_blank" style="color: #60a5fa; text-decoration: none;">${escapeHtml(item.source)} ↗</a>` : escapeHtml(item.source)}
+              </div>
+            </td>
+            <td>${getCategoryBadge(item.category)}</td>
+            <td>${formatBadge}</td>
+            <td><strong>${item.chunk_count}</strong> chunks</td>
+            <td><span style="font-size: 0.78rem; color: var(--text-secondary);">${item.date_created}</span></td>
+            <td>
+              <div class="actions-cell">
+                <button class="btn-action btn-preview" onclick="openPreviewModal('${item.id}')" title="Inspect full document content and chunks">Inspect</button>
+                <button class="btn-action btn-approve-staged" onclick="approveOnlyReviewItem('${item.id}')" title="Approve for staging without publishing to live assistant" ${isStagedApproved ? 'style="opacity: 0.6;" disabled' : ''}>
+                  ${isStagedApproved ? '✓ Staged' : 'Approve Only'}
+                </button>
+                <button class="btn-action btn-approve" onclick="approveAndLiveReviewItem('${item.id}')" title="Approve and immediately index into live Chroma">
+                  Approve &amp; Live
+                </button>
+                <button class="btn-action btn-reject" onclick="rejectReviewItem('${item.id}')" title="Discard document and purge from staging">
+                  Reject
+                </button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    async function approveOnlyReviewItem(itemId) {
+      try {
+        const res = await fetch(`/admin/api/review/${itemId}/approve-staged`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ notes: "Approved for staging by reviewer" })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          showAlert(`Document approved for staging (ready for sandbox testing, not yet live).`, 'success');
+          closePreviewModal();
+          loadReviewQueue();
+          updateCounters();
+        } else {
+          showAlert(data.error || 'Failed to approve item for staging', 'error');
+        }
+      } catch (err) {
+        showAlert(`Error: ${err.message}`, 'error');
+      }
+    }
+
+    async function approveAndLiveReviewItem(itemId) {
+      try {
+        const res = await fetch(`/admin/api/review/${itemId}/approve`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ live: true })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          showAlert(`Document approved and published to live assistant!`, 'success');
+          closePreviewModal();
+          loadReviewQueue();
+          loadIndexedDocs();
+          updateCounters();
+        } else {
+          showAlert(data.error || 'Failed to approve item to live', 'error');
+        }
+      } catch (err) {
+        showAlert(`Error: ${err.message}`, 'error');
+      }
+    }
+
+    // Alias for backward compatibility
+    const approveReviewItem = approveAndLiveReviewItem;
+
+    async function rejectReviewItem(itemId) {
+      if (!confirm("Are you sure you want to discard this document?")) return;
+      try {
+        // Optimistically dim the row
+        const row = document.getElementById(`queueRow_${itemId}`);
+        if (row) row.style.opacity = '0.3';
+
+        const res = await fetch(`/admin/api/review/${itemId}/reject`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ reason: "Rejected by reviewer" })
+        });
+        const data = await res.json();
+        if (res.ok || res.status === 404) {
+          showAlert(`Document discarded.`, 'info');
+          if (row) row.remove();
+          closePreviewModal();
+          loadReviewQueue();
+          updateCounters();
+        } else {
+          showAlert(data.error || 'Failed to reject item', 'error');
+          loadReviewQueue();
+        }
+      } catch (err) {
+        showAlert(`Error: ${err.message}`, 'error');
+        loadReviewQueue();
+      }
+    }
+
+    async function publishAllStaged() {
+      const count = allPendingItems.length;
+      if (count === 0) {
+        showAlert("No documents in the review queue to publish.", "error");
+        return;
+      }
+      if (!confirm(`Are you sure you want to approve and make LIVE all ${count} staged documents into the assistant's live knowledge base?`)) {
+        return;
+      }
+
+      const btn = document.getElementById('publishAllBtn');
+      btn.disabled = true;
+      btn.textContent = "Publishing documents...";
+
+      try {
+        const res = await fetch('/admin/api/review/publish-all', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({})
+        });
+        const data = await res.json();
+        if (res.ok) {
+          showAlert(`Success! ${data.approved_count} documents were published to live knowledge base.`);
+          loadReviewQueue();
+          loadIndexedDocs();
+          updateCounters();
+        } else {
+          showAlert(data.error || 'Failed to publish all items', 'error');
+        }
+      } catch (err) {
+        showAlert(`Error publishing: ${err.message}`, 'error');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "🚀 Publish All Staged (Make Live)";
+      }
+    }
+
+    // --------------------------------------------------------------------------
+    // Staged Draft Testing Sandbox (Admin Draft Playground)
+    // --------------------------------------------------------------------------
+    async function runStagedTestQuery() {
+      const input = document.getElementById('stagedTestInput');
+      const btn = document.getElementById('stagedTestBtn');
+      const output = document.getElementById('stagedTestOutput');
+      const answerEl = document.getElementById('stagedTestAnswer');
+      const citationsEl = document.getElementById('stagedTestCitations');
+
+      const query = input.value.trim();
+      if (!query) {
+        showAlert("Please enter a question to test staged drafts.", "error");
+        input.focus();
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = "Querying Drafts...";
+      output.classList.add('active');
+      answerEl.innerHTML = "<em>Analyzing staged unapproved documents...</em>";
+      citationsEl.innerHTML = "";
+
+      try {
+        const res = await fetch('/admin/api/review/test-staged', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ query: query })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          answerEl.textContent = data.answer || "No draft answer generated.";
+          const docs = data.staged_matches || [];
+          if (docs.length > 0) {
+            citationsEl.innerHTML = `<div style="font-weight: 700; margin-bottom: 0.4rem; color: #94a3b8;">Retrieved Staged Draft Chunks (${docs.length}):</div>` + docs.map(d => `
+              <div class="staged-citation-item">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.25rem;">
+                  <strong>${escapeHtml(d.title)}</strong>
+                  <span class="badge badge-type" style="font-size: 0.68rem;">Relevance Match: ${d.score}</span>
+                </div>
+                <div style="font-size: 0.74rem; color: var(--text-secondary); margin-bottom: 0.3rem;">
+                  ${escapeHtml(d.source_url)} • Category: <strong style="color: #93c5fd;">${escapeHtml(d.category || 'General')}</strong>
+                </div>
+                <div style="font-size: 0.78rem; color: #cbd5e1; font-style: italic; line-height: 1.4;">
+                  "${escapeHtml(d.text.substring(0, 180))}..."
+                </div>
+              </div>
+            `).join('');
+          } else {
+            citationsEl.innerHTML = `<em>Note: No staged draft documents matched the query keywords.</em>`;
+          }
+        } else {
+          answerEl.textContent = data.error || "Failed to run staged test query.";
+        }
+      } catch (err) {
+        answerEl.textContent = `Error: ${err.message}`;
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "Run Test Query ⚡";
+      }
+    }
+
+    document.getElementById('refreshQueueBtn').addEventListener('click', () => loadReviewQueue());
+
+    function switchToReviewQueue() {
+      const reviewTabBtn = document.querySelector('[data-tab="tab-review"]');
+      if (reviewTabBtn) reviewTabBtn.click();
+    }
+
+    // --------------------------------------------------------------------------
+    // Inspection / Preview Modal
+    // --------------------------------------------------------------------------
+    async function openPreviewModal(itemId) {
+      currentPreviewItemId = itemId;
+      try {
+        const res = await fetch(`/admin/api/pending/${itemId}`);
+        if (!res.ok) return;
+        const data = await res.json();
+        const item = data.item;
+
+        document.getElementById('modalTitle').textContent = item.title || 'Document Inspection';
+        document.getElementById('modalSource').textContent = item.source;
+        document.getElementById('modalDocId').textContent = item.doc_id;
+        document.getElementById('modalCategory').textContent = item.category || 'General Compliance';
+        document.getElementById('modalType').textContent = item.source_type;
+        document.getElementById('modalChunks').textContent = `${item.chunk_count} prepared chunks`;
+        document.getElementById('modalPreviewBox').textContent = item.preview_text || item.full_text;
+
+        const approveOnlyBtn = document.getElementById('modalApproveOnlyBtn');
+        if (approveOnlyBtn) {
+          approveOnlyBtn.onclick = () => approveOnlyReviewItem(itemId);
+          if (item.status === 'staged_approved') {
+            approveOnlyBtn.textContent = '✓ Already Staged';
+            approveOnlyBtn.style.opacity = '0.6';
+            approveOnlyBtn.disabled = true;
+          } else {
+            approveOnlyBtn.textContent = 'Approve Only';
+            approveOnlyBtn.style.opacity = '1';
+            approveOnlyBtn.disabled = false;
+          }
+        }
+
+        const approveLiveBtn = document.getElementById('modalApproveLiveBtn') || document.getElementById('modalApproveBtn');
+        if (approveLiveBtn) {
+          approveLiveBtn.onclick = () => approveAndLiveReviewItem(itemId);
+        }
+
+        const rejectBtn = document.getElementById('modalRejectBtn');
+        if (rejectBtn) {
+          rejectBtn.onclick = () => rejectReviewItem(itemId);
+        }
+
+        document.getElementById('previewModal').classList.add('active');
+      } catch (err) {
+        showAlert(`Failed to fetch preview: ${err.message}`, 'error');
+      }
+    }
+
+    function closePreviewModal() {
+      document.getElementById('previewModal').classList.remove('active');
+      currentPreviewItemId = null;
+    }
+    document.getElementById('closeModalBtn').addEventListener('click', closePreviewModal);
+
+    // --------------------------------------------------------------------------
+    // Published Documents & Agentic Search Bot
+    // --------------------------------------------------------------------------
+    let allIndexedDocs = [];
+
+    async function loadIndexedDocs() {
+      try {
+        const res = await fetch('/admin/api/indexed');
+        if (!res.ok) return;
+        const data = await res.json();
+        allIndexedDocs = data.documents || [];
+        renderIndexedDocs(allIndexedDocs);
+        updateIndexedCounter(allIndexedDocs.length);
+        const filterInput = document.getElementById('indexedTableFilter');
+        if (filterInput && filterInput.value.trim()) {
+          filterIndexedTable();
+        }
+      } catch (err) {
+        console.error("Error loading indexed docs:", err);
+      }
+    }
+
+    function renderIndexedDocs(docs) {
+      const tbody = document.getElementById('indexedTableBody');
+      const countEl = document.getElementById('tableFilterCount');
+      if (countEl) {
+        countEl.textContent = `Showing ${docs ? docs.length : 0} of ${allIndexedDocs.length} documents`;
+      }
+
+      if (!docs || docs.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="6" class="empty-state">
+              <div class="empty-icon">📂</div>
+              <p>${allIndexedDocs.length > 0 ? "No documents match your table filter." : "No documents published yet."}</p>
+            </td>
+          </tr>`;
+        return;
+      }
+
+      tbody.innerHTML = docs.map(doc => {
+        const isPdf = doc.source_type === 'pdf' || (doc.source && doc.source.toLowerCase().endsWith('.pdf'));
+        const viewLink = isPdf ? `/api/docs/${doc.doc_id}.pdf` : `/api/docs/${doc.doc_id}`;
+
+        return `
+          <tr id="row-${escapeHtml(doc.doc_id)}" data-doc-id="${escapeHtml(doc.doc_id)}">
+            <td><strong>${escapeHtml(doc.title)}</strong></td>
+            <td>
+              ${doc.source && doc.source.startsWith('http') ? `
+                <a href="${escapeHtml(doc.source)}" target="_blank" style="color: #60a5fa; text-decoration: none; word-break: break-all;">
+                  ${escapeHtml(doc.source)} ↗
+                </a>` : `<span style="color: var(--text-secondary); word-break: break-all;">${escapeHtml(doc.source || '—')}</span>`
+              }
+            </td>
+            <td><span class="badge ${isPdf ? 'badge-type' : 'badge-pending'}">${escapeHtml(doc.source_type || 'doc')}</span></td>
+            <td><strong>${doc.chunk_count || 1}</strong> sections</td>
+            <td><span style="font-size: 0.8rem; color: var(--text-secondary);">${escapeHtml(doc.date_scraped || '—')}</span></td>
+            <td>
+              <div style="display: flex; gap: 0.4rem; align-items: center;">
+                <a href="${viewLink}" target="_blank" class="btn-action btn-preview" style="text-decoration: none;">
+                  View ↗
+                </a>
+                <button class="btn-action btn-delete" onclick="deleteFromIndex('${doc.doc_id}', '${doc.title.replace(/'/g, "\\'")}')">
+                  Remove
+                </button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function filterIndexedTable() {
+      const term = (document.getElementById('indexedTableFilter').value || "").toLowerCase().trim();
+      if (!term) {
+        renderIndexedDocs(allIndexedDocs);
+        return;
+      }
+      const filtered = allIndexedDocs.filter(d => 
+        (d.title && d.title.toLowerCase().includes(term)) ||
+        (d.source && d.source.toLowerCase().includes(term)) ||
+        (d.doc_id && d.doc_id.toLowerCase().includes(term)) ||
+        (d.source_type && d.source_type.toLowerCase().includes(term))
+      );
+      renderIndexedDocs(filtered);
+    }
+
+    function highlightInTable(docId) {
+      // Clear filter to ensure target row is rendered
+      const filterInput = document.getElementById('indexedTableFilter');
+      if (filterInput) filterInput.value = "";
+      renderIndexedDocs(allIndexedDocs);
+
+      const targetRow = document.getElementById(`row-${docId}`);
+      if (targetRow) {
+        targetRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        targetRow.classList.remove('row-highlight-pulse');
+        void targetRow.offsetWidth; // force DOM reflow
+        targetRow.classList.add('row-highlight-pulse');
+      }
+    }
+
+    function setAdminSearchQuery(text) {
+      const input = document.getElementById('adminSearchInput');
+      if (input) {
+        input.value = text;
+        runAdminDocSearch();
+      }
+    }
+
+    let currentInsideDocId = null;
+
+    async function runAdminDocSearch() {
+      const input = document.getElementById('adminSearchInput');
+      const btn = document.getElementById('adminSearchBtn');
+      const output = document.getElementById('adminSearchOutput');
+      const answerEl = document.getElementById('adminSearchAnswer');
+      const countBadge = document.getElementById('adminSearchCountBadge');
+      const docsList = document.getElementById('adminSearchDocsList');
+
+      const query = input.value.trim();
+      if (!query) {
+        showAlert("Please enter a question or query for the search bot.", "error");
+        input.focus();
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = "Searching Knowledge Base...";
+      output.classList.add('active');
+      answerEl.innerHTML = `<em>🤖 Searching published PDFs & documents for "${escapeHtml(query)}"...</em>`;
+      countBadge.textContent = "Searching...";
+      docsList.innerHTML = "";
+      closeDocInside();
+
+      try {
+        const res = await fetch('/admin/api/search-docs', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ query: query })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          answerEl.innerHTML = formatMarkdownAnswer(data.answer || "No response generated.");
+          const docs = data.documents || [];
+          countBadge.textContent = `${docs.length} document${docs.length === 1 ? '' : 's'} matched`;
+
+          if (docs.length > 0) {
+            document.getElementById('adminSearchDocsSection').style.display = 'block';
+            docsList.innerHTML = docs.map((d, index) => {
+              const isTop = index === 0;
+              const snips = d.snippets && d.snippets.length > 0 ? d.snippets : [];
+              const snipHtml = snips.map(s => `
+                <div class="doc-result-snippet">
+                  <span style="font-weight: 700; color: #60a5fa;">Page ${s.page_number}:</span>
+                  "${escapeHtml(s.text)}"
+                </div>
+              `).join('');
+
+              const isPdf = d.source_type === 'pdf' || (d.source && d.source.toLowerCase().endsWith('.pdf'));
+              const pct = d.match_percentage || 85;
+              const is100 = pct >= 99;
+              const pillClass = is100 ? 'match-pill-100' : (pct >= 85 ? 'match-pill-pct' : 'match-pill-mid');
+              const pillText = is100 ? '100% Match' : `${pct}% Match`;
+
+              if (isTop) {
+                // Starting Top Option with small % matching after the actual data
+                return `
+                  <div class="top-match-card">
+                    <div class="top-match-flag-row">
+                      <div class="top-match-flag">
+                        <span>★</span>
+                        <span>Top Matching Document</span>
+                      </div>
+                      <span class="match-pill ${pillClass}">
+                        ${pillText}
+                      </span>
+                    </div>
+
+                    <div class="doc-result-card-header">
+                      <div>
+                        <div class="doc-result-title" style="font-size: 0.96rem; color: #ffffff;">${escapeHtml(d.title)}</div>
+                        <div style="font-size: 0.74rem; color: var(--text-secondary); word-break: break-all; margin-top: 2px;">
+                          ${escapeHtml(d.source || 'Direct Upload')}
+                        </div>
+                      </div>
+                      <span class="badge ${isPdf ? 'badge-type' : 'badge-pending'}" style="font-size: 0.7rem; text-transform: uppercase;">
+                        ${isPdf ? 'PDF' : d.source_type}
+                      </span>
+                    </div>
+
+                    <div style="display: flex; gap: 8px; align-items: center; font-size: 0.74rem; color: var(--text-secondary);">
+                      <span style="color: #34d399; font-weight: 600;">✓ ${escapeHtml(d.match_type || 'Match')}</span>
+                      <span>•</span>
+                      <span>${d.chunk_count || 1} sections indexed</span>
+                      ${d.date_scraped ? `<span>•</span><span>${escapeHtml(d.date_scraped)}</span>` : ''}
+                    </div>
+
+                    ${snipHtml}
+
+                    <div class="doc-result-actions">
+                      <button type="button" class="btn-action btn-go-inside" onclick="openDocInside('${escapeHtml(d.doc_id)}', '${escapeHtml(query)}')">
+                        <span>Go Inside Document 📖</span>
+                      </button>
+                      <button type="button" class="btn-action" style="background: rgba(255,255,255,0.06); border: 1px solid var(--border-subtle); color: var(--text-secondary);" onclick="highlightInTable('${escapeHtml(d.doc_id)}')">
+                        Locate in Table ↓
+                      </button>
+                    </div>
+                  </div>
+                `;
+              }
+
+              // Additional matching documents
+              return `
+                <div class="doc-result-card">
+                  <div class="doc-result-card-header">
+                    <div>
+                      <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 2px;">
+                        <span class="match-pill ${pillClass}">${pillText}</span>
+                        <div class="doc-result-title">${escapeHtml(d.title)}</div>
+                      </div>
+                      <div style="font-size: 0.74rem; color: var(--text-secondary); word-break: break-all;">
+                        ${escapeHtml(d.source || 'Direct Upload')}
+                      </div>
+                    </div>
+                    <span class="badge ${isPdf ? 'badge-type' : 'badge-pending'}" style="font-size: 0.7rem; text-transform: uppercase;">
+                      ${isPdf ? 'PDF' : d.source_type}
+                    </span>
+                  </div>
+
+                  <div style="display: flex; gap: 8px; align-items: center; font-size: 0.74rem; color: var(--text-secondary);">
+                    <span style="color: #34d399; font-weight: 600;">✓ ${escapeHtml(d.match_type || 'Match')}</span>
+                    <span>•</span>
+                    <span>${d.chunk_count || 1} sections</span>
+                    ${d.date_scraped ? `<span>•</span><span>${escapeHtml(d.date_scraped)}</span>` : ''}
+                  </div>
+
+                  ${snipHtml}
+
+                  <div class="doc-result-actions">
+                    <button type="button" class="btn-action btn-go-inside" onclick="openDocInside('${escapeHtml(d.doc_id)}', '${escapeHtml(query)}')">
+                      <span>Go Inside Document 📖</span>
+                    </button>
+                    <button type="button" class="btn-action" style="background: rgba(255,255,255,0.06); border: 1px solid var(--border-subtle); color: var(--text-secondary);" onclick="highlightInTable('${escapeHtml(d.doc_id)}')">
+                      Locate in Table ↓
+                    </button>
+                  </div>
+                </div>
+              `;
+            }).join('');
+          } else {
+            document.getElementById('adminSearchDocsSection').style.display = 'none';
+          }
+        } else {
+          answerEl.textContent = data.error || "Failed to search documents.";
+          countBadge.textContent = "Error";
+        }
+      } catch (err) {
+        answerEl.textContent = `Search error: ${err.message}`;
+        countBadge.textContent = "Error";
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "Ask Assistant 🔍";
+      }
+    }
+
+    async function openDocInside(docId, query) {
+      currentInsideDocId = docId;
+      const panel = document.getElementById('adminInsideDocPanel');
+      const titleEl = document.getElementById('insideDocTitle');
+      const metaEl = document.getElementById('insideDocMeta');
+      const answerEl = document.getElementById('insideDocAnswer');
+      const inputEl = document.getElementById('insideDocQueryInput');
+      const pagesContainer = document.getElementById('insideDocPagesContainer');
+      const sectionsCount = document.getElementById('insideDocSectionsCount');
+      const rawLink = document.getElementById('insideDocRawLink');
+
+      panel.classList.add('active');
+      titleEl.textContent = "Loading Document Details...";
+      answerEl.innerHTML = `<em>🤖 Analyzing sections inside this document...</em>`;
+      pagesContainer.innerHTML = `<div style="text-align:center; padding:1.5rem; color:var(--text-secondary);">Loading extracted pages &amp; sections...</div>`;
+      if (inputEl) inputEl.value = query || "";
+
+      // Smooth scroll to inside view
+      panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+      try {
+        const res = await fetch('/admin/api/doc-inspect', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ doc_id: docId, query: query || "" })
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          titleEl.textContent = data.title || "Regulatory Document";
+          const isPdf = data.source_type === 'pdf';
+          metaEl.innerHTML = `
+            <span class="badge ${isPdf ? 'badge-type' : 'badge-pending'}">${isPdf ? 'PDF' : data.source_type}</span>
+            <span>${data.total_pages || 1} Pages / ${data.total_chunks || 1} Sections Indexed</span>
+            ${data.date_scraped ? `<span>• ${escapeHtml(data.date_scraped)}</span>` : ''}
+          `;
+
+          answerEl.innerHTML = formatMarkdownAnswer(data.answer || "No specific answer extracted.");
+
+          rawLink.href = data.view_url || (isPdf ? `/api/docs/${docId}.pdf` : `/api/docs/${docId}`);
+
+          const pages = data.pages || [];
+          sectionsCount.textContent = `${pages.length} section(s)`;
+
+          if (pages.length > 0) {
+            pagesContainer.innerHTML = pages.map(p => {
+              const isMatch = p.matches_query;
+              return `
+                <div class="inside-page-card ${isMatch ? 'matched-highlight' : ''}">
+                  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 0.35rem;">
+                    <span class="inside-page-num">Page ${p.page_number} (Section ${p.chunk_index + 1})</span>
+                    ${isMatch ? '<span style="font-size:0.68rem; font-weight:700; color:#34d399; background:rgba(16,185,129,0.15); padding:2px 6px; border-radius:4px;">Direct Keyword Match</span>' : ''}
+                  </div>
+                  <div>${escapeHtml(p.text)}</div>
+                </div>
+              `;
+            }).join('');
+          } else {
+            pagesContainer.innerHTML = `<div style="color:var(--text-secondary); padding:0.5rem;">No text pages extracted.</div>`;
+          }
+        } else {
+          answerEl.textContent = data.error || "Failed to inspect inside document.";
+        }
+      } catch (err) {
+        answerEl.textContent = `Error loading document content: ${err.message}`;
+      }
+    }
+
+    async function askInsideCurrentDoc() {
+      if (!currentInsideDocId) return;
+      const inputEl = document.getElementById('insideDocQueryInput');
+      const answerEl = document.getElementById('insideDocAnswer');
+      const btn = document.getElementById('insideDocAskBtn');
+      const q = (inputEl.value || "").trim();
+      if (!q) {
+        showAlert("Please enter a question to ask inside this document.", "error");
+        inputEl.focus();
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = "Analyzing...";
+      answerEl.innerHTML = `<em>🤖 Searching inside document for "${escapeHtml(q)}"...</em>`;
+
+      try {
+        const res = await fetch('/admin/api/doc-inspect', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ doc_id: currentInsideDocId, query: q })
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          answerEl.innerHTML = formatMarkdownAnswer(data.answer || "No direct answer found inside this document.");
+          const pages = data.pages || [];
+          const pagesContainer = document.getElementById('insideDocPagesContainer');
+          if (pages.length > 0 && pagesContainer) {
+            pagesContainer.innerHTML = pages.map(p => {
+              const isMatch = p.matches_query;
+              return `
+                <div class="inside-page-card ${isMatch ? 'matched-highlight' : ''}">
+                  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 0.35rem;">
+                    <span class="inside-page-num">Page ${p.page_number} (Section ${p.chunk_index + 1})</span>
+                    ${isMatch ? '<span style="font-size:0.68rem; font-weight:700; color:#34d399; background:rgba(16,185,129,0.15); padding:2px 6px; border-radius:4px;">Direct Keyword Match</span>' : ''}
+                  </div>
+                  <div>${escapeHtml(p.text)}</div>
+                </div>
+              `;
+            }).join('');
+          }
+        } else {
+          answerEl.textContent = data.error || "Failed to query inside document.";
+        }
+      } catch (err) {
+        answerEl.textContent = `Error: ${err.message}`;
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "Ask Inside 💬";
+      }
+    }
+
+    function closeDocInside() {
+      const panel = document.getElementById('adminInsideDocPanel');
+      if (panel) panel.classList.remove('active');
+      currentInsideDocId = null;
+    }
+
+    function formatMarkdownAnswer(text) {
+      if (!text) return "";
+      let html = escapeHtml(text);
+      // Bold **text**
+      html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+      // Bullet points
+      html = html.replace(/^• (.*?)$/gm, '<li style="margin-left: 1.2rem; margin-bottom: 0.35rem;">$1</li>');
+      html = html.replace(/^- (.*?)$/gm, '<li style="margin-left: 1.2rem; margin-bottom: 0.35rem;">$1</li>');
+      // Wrap lists
+      html = html.replace(/(<li.*<\/li>)/s, '<ul style="margin: 0.5rem 0 0.75rem;">$1</ul>');
+      // Italics
+      html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
+      // Line breaks
+      html = html.replace(/\n\n/g, '<br><br>');
+      return html;
+    }
+
+    async function deleteFromIndex(docId, title) {
+      if (!confirm(`Are you sure you want to remove "${title}"?`)) return;
+      try {
+        const res = await fetch(`/admin/api/indexed/${docId}`, { method: 'DELETE' });
+        const data = await res.json();
+        if (res.ok) {
+          showAlert(`Removed "${title}".`);
+          loadIndexedDocs();
+          updateCounters();
+        } else {
+          showAlert(data.error || 'Failed to remove document', 'error');
+        }
+      } catch (err) {
+        showAlert(`Error: ${err.message}`, 'error');
+      }
+    }
+
+    document.getElementById('refreshIndexedBtn').addEventListener('click', loadIndexedDocs);
+
+    // Bind Enter key on search input and inside doc query input
+    document.addEventListener('DOMContentLoaded', () => {
+      const searchInput = document.getElementById('adminSearchInput');
+      if (searchInput) {
+        searchInput.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            runAdminDocSearch();
+          }
+        });
+      }
+
+      const insideQueryInput = document.getElementById('insideDocQueryInput');
+      if (insideQueryInput) {
+        insideQueryInput.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            askInsideCurrentDoc();
+          }
+        });
+      }
+    });
+
+    // --------------------------------------------------------------------------
+    // Badge Counters
+    // --------------------------------------------------------------------------
+    function updateReviewCounter(count) {
+      const el = document.getElementById('pendingCounter');
+      el.textContent = count;
+      if (count > 0) {
+        el.className = 'pill-counter';
+      } else {
+        el.className = 'pill-counter zero';
+      }
+    }
+
+    function updateIndexedCounter(count) {
+      const el = document.getElementById('indexedCounter');
+      el.textContent = count;
+      if (count > 0) {
+        el.className = 'pill-counter';
+      } else {
+        el.className = 'pill-counter zero';
+      }
+    }
+
+    async function updateCounters() {
+      try {
+        const [pRes, iRes] = await Promise.all([
+          fetch('/admin/api/pending'),
+          fetch('/admin/api/indexed')
+        ]);
+        if (pRes.ok) {
+          const pData = await pRes.json();
+          updateReviewCounter(pData.pending ? pData.pending.length : 0);
+        }
+        if (iRes.ok) {
+          const iData = await iRes.json();
+          updateIndexedCounter(iData.documents ? iData.documents.length : 0);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    // --------------------------------------------------------------------------
+    // Autonomous Deep Site Crawler Controller
+    // --------------------------------------------------------------------------
+    let activeCrawlerId = null;
+    let crawlerPollingInterval = null;
+
+    function setCrawlerUrl(url) {
+      const input = document.getElementById('crawlerRootUrl');
+      if (input) {
+        input.value = url;
+        input.focus();
+      }
+    }
+
+    function clearCrawlerLogs() {
+      const body = document.getElementById('crawlerTerminalBody');
+      if (body) {
+        const timeNow = new Date().toTimeString().split(' ')[0];
+        body.innerHTML = `
+          <div class="terminal-log-line">
+            <span class="terminal-time">${timeNow}</span>
+            <span class="terminal-level level-info">CLEAR</span>
+            <span>Console logs cleared.</span>
+          </div>`;
+      }
+    }
+
+    function appendCrawlerLog(log) {
+      const body = document.getElementById('crawlerTerminalBody');
+      if (!body) return;
+
+      const levelClass = {
+        'INFO': 'level-info',
+        'SUCCESS': 'level-success',
+        'WARN': 'level-warn',
+        'ERROR': 'level-error'
+      }[log.level] || 'level-info';
+
+      const line = document.createElement('div');
+      line.className = 'terminal-log-line';
+      line.innerHTML = `
+        <span class="terminal-time">${log.timestamp || '--:--:--'}</span>
+        <span class="terminal-level ${levelClass}">${log.level || 'INFO'}</span>
+        <span>${escapeHtml(log.message || '')}</span>
+      `;
+      body.appendChild(line);
+      body.scrollTop = body.scrollHeight;
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    function updateCrawlerUI(job) {
+      if (!job) return;
+
+      // Status Badge
+      const badge = document.getElementById('crawlerLiveStatusBadge');
+      const badgePill = document.getElementById('crawlerBadge');
+      if (badge) {
+        let badgeClass = 'badge-pending';
+        let pulse = '';
+        if (job.status === 'running') {
+          badgeClass = 'badge-processing';
+          pulse = '<span class="pulse-dot"></span>';
+        } else if (job.status === 'completed') {
+          badgeClass = 'badge-done';
+        } else if (job.status === 'stopped') {
+          badgeClass = 'badge-pending';
+        } else if (job.status === 'failed') {
+          badgeClass = 'badge-failed';
+        }
+        badge.className = `badge ${badgeClass}`;
+        badge.innerHTML = `${pulse}${job.status.toUpperCase()}`;
+      }
+
+      if (badgePill) {
+        badgePill.textContent = job.status === 'running' ? 'Active' : (job.status || 'Ready');
+        badgePill.className = job.status === 'running' ? 'pill-counter' : 'pill-counter zero';
+      }
+
+      // Stage Badge
+      const stageBadge = document.getElementById('crawlerStageBadge');
+      if (stageBadge) {
+        stageBadge.textContent = job.stage ? `Stage: ${job.stage}` : 'Stage: Idle';
+      }
+
+      // Active Target Desc
+      const targetDesc = document.getElementById('crawlerActiveTargetDesc');
+      if (targetDesc) {
+        if (job.status === 'running') {
+          targetDesc.textContent = `Traversing domain: ${job.base_domain} | Fetching: ${job.current_url || job.root_url}`;
+        } else if (job.status === 'completed') {
+          targetDesc.textContent = `Exploration completed for ${job.root_url}. All discovered documents processed.`;
+        } else if (job.status === 'stopped') {
+          targetDesc.textContent = `Exploration stopped by operator. Last target: ${job.current_url || job.root_url}`;
+        } else {
+          targetDesc.textContent = `Ready for target initiation. Target: ${job.root_url}`;
+        }
+      }
+
+      // Active / Target URL link
+      const curUrlLink = document.getElementById('crawlerCurrentUrlLink');
+      const activeUrlTarget = job.current_url || job.root_url;
+      if (curUrlLink && activeUrlTarget) {
+        let cleanTarget = activeUrlTarget.trim();
+        if (!/^https?:\/\//i.test(cleanTarget)) cleanTarget = 'https://' + cleanTarget;
+        curUrlLink.href = cleanTarget;
+        curUrlLink.style.display = 'inline-block';
+        curUrlLink.title = `Open ${cleanTarget} in new tab`;
+      } else if (curUrlLink) {
+        curUrlLink.style.display = 'none';
+      }
+
+      // Captcha / Human Challenge Detection Banner
+      const captchaAlert = document.getElementById('crawlerCaptchaAlert');
+      const captchaUrlText = document.getElementById('captchaBlockedUrlText');
+      const captchaUrlLink = document.getElementById('captchaBlockedUrlLink');
+      const captchaOpenAnchor = document.getElementById('captchaOpenAnchor');
+
+      if (captchaAlert) {
+        if (job.captcha_blocked_url || job.has_captcha_block) {
+          let rawUrl = job.captcha_blocked_url || job.current_url || job.root_url;
+          if (rawUrl && typeof rawUrl === 'string') {
+            rawUrl = rawUrl.trim();
+            if (!/^https?:\/\//i.test(rawUrl)) {
+              rawUrl = 'https://' + rawUrl;
+            }
+          }
+          currentCaptchaUrl = rawUrl;
+          if (captchaUrlLink) {
+            captchaUrlLink.textContent = currentCaptchaUrl;
+            captchaUrlLink.href = currentCaptchaUrl;
+          }
+          if (captchaUrlText) captchaUrlText.textContent = currentCaptchaUrl;
+          if (captchaOpenAnchor) {
+            captchaOpenAnchor.href = currentCaptchaUrl;
+          }
+          captchaAlert.style.display = 'block';
+        } else {
+          captchaAlert.style.display = 'none';
+        }
+      }
+
+      // Progress Bar
+      const percent = Math.min(100, Math.max(0, job.progress_percent || 0));
+      const bar = document.getElementById('crawlerProgressBar');
+      const percentEl = document.getElementById('crawlerProgressPercent');
+      const labelEl = document.getElementById('crawlerProgressLabel');
+      if (bar) {
+        bar.style.width = `${percent}%`;
+        if (job.status === 'running') {
+          bar.className = 'progress-fill processing';
+        } else if (job.status === 'completed') {
+          bar.className = 'progress-fill done';
+        } else if (job.status === 'failed') {
+          bar.className = 'progress-fill failed';
+        } else {
+          bar.className = 'progress-fill';
+        }
+      }
+      if (percentEl) percentEl.textContent = `${percent}%`;
+      const processedCount = (job.pages_crawled || 0) + (job.errors_count || 0);
+      if (labelEl) {
+        if (job.errors_count > 0 && job.pages_crawled === 0) {
+          labelEl.textContent = `Progress: ${processedCount} / ${job.max_pages} URLs (${job.errors_count} blocked/skipped)`;
+        } else if (job.errors_count > 0) {
+          labelEl.textContent = `Progress: ${processedCount} / ${job.max_pages} URLs (${job.pages_crawled} indexed, ${job.errors_count} skipped)`;
+        } else {
+          labelEl.textContent = `Progress: ${processedCount} / ${job.max_pages} URLs (${job.pages_crawled} indexed)`;
+        }
+      }
+
+      // Metric counters
+      const pEl = document.getElementById('metricPages');
+      const pdfEl = document.getElementById('metricPdfs');
+      const cEl = document.getElementById('metricChunks');
+      const errEl = document.getElementById('metricErrors');
+      const etaEl = document.getElementById('metricEta');
+      const speedEl = document.getElementById('metricSpeed');
+      if (pEl) pEl.textContent = job.pages_crawled || 0;
+      if (pdfEl) pdfEl.textContent = job.pdfs_extracted || 0;
+      if (cEl) cEl.textContent = job.chunks_indexed || 0;
+      if (errEl) errEl.textContent = job.errors_count || 0;
+      if (etaEl) {
+        let etaText = job.eta || '--';
+        if (etaText === 'Calculating...') etaText = 'Calc...';
+        etaEl.textContent = etaText;
+      }
+      if (speedEl) speedEl.textContent = job.speed || '0 p/s';
+
+      // Buttons
+      const startBtn = document.getElementById('startCrawlBtn');
+      const stopBtn = document.getElementById('stopCrawlBtn');
+      if (job.status === 'running') {
+        if (startBtn) startBtn.disabled = true;
+        if (stopBtn) stopBtn.disabled = false;
+      } else {
+        if (startBtn) startBtn.disabled = false;
+        if (stopBtn) stopBtn.disabled = true;
+      }
+    }
+
+    // --------------------------------------------------------------------------
+    // Pre-Crawl Discovery & Category Approval Gate Handlers
+    // --------------------------------------------------------------------------
+    let discoveredLinksData = null;
+
+    async function openDiscoverModal() {
+      const rootUrlInput = document.getElementById('crawlerRootUrl');
+      const rootUrl = rootUrlInput.value.trim();
+      if (!rootUrl) {
+        showAlert("Please enter a Root URL first.", "error");
+        rootUrlInput.focus();
+        return;
+      }
+
+      const modal = document.getElementById('discoverModal');
+      const loading = document.getElementById('discoverLoading');
+      const content = document.getElementById('discoverContent');
+      modal.classList.add('active');
+      loading.style.display = 'block';
+      content.style.display = 'none';
+
+      try {
+        const res = await fetch('/admin/api/crawl/discover', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ root_url: rootUrl, max_links: 50 })
+        });
+        const data = await res.json();
+        loading.style.display = 'none';
+
+        if (res.ok && data.success) {
+          discoveredLinksData = data.discovery;
+          clearDiscoverFilter();
+          renderDiscoverCategories(data.discovery);
+          content.style.display = 'block';
+        } else {
+          showAlert(data.error || "Failed to discover links.", "error");
+          closeDiscoverModal();
+        }
+      } catch (err) {
+        loading.style.display = 'none';
+        showAlert(`Error during discovery: ${err.message}`, "error");
+        closeDiscoverModal();
+      }
+    }
+
+    function closeDiscoverModal() {
+      document.getElementById('discoverModal').classList.remove('active');
+    }
+
+    function renderDiscoverCategories(discovery) {
+      document.getElementById('discoverTotalCount').textContent = discovery.total_discovered || 0;
+      document.getElementById('discoverFooterTotal').textContent = discovery.total_discovered || 0;
+      document.getElementById('discoverDomainName').textContent = discovery.base_domain || "";
+
+      const container = document.getElementById('discoverCategoriesList');
+      const categories = discovery.categories || {};
+
+      container.innerHTML = Object.entries(categories).map(([catName, links]) => {
+        if (!links || links.length === 0) return '';
+        const safeCatId = catName.replace(/[^a-zA-Z0-9]/g, '_');
+        return `
+          <div class="discover-category-block" id="catBlock_${safeCatId}">
+            <div class="discover-category-header">
+              <label style="display: flex; align-items: center; gap: 0.65rem; cursor: pointer; flex: 1;">
+                <input type="checkbox" class="cat-master-checkbox" data-cat="${safeCatId}" checked onchange="toggleCategoryCheckboxes('${safeCatId}', this.checked)">
+                <strong style="color: #f8fafc;">${escapeHtml(catName)}</strong>
+                <span class="pill-counter" style="background: rgba(59,130,246,0.2); color: #93c5fd; font-size: 0.72rem;">${links.length} links</span>
+              </label>
+              <button type="button" class="cat-toggle-btn" onclick="toggleCategoryAccordion('${safeCatId}')" title="Click to expand/collapse links">
+                <span>Details</span>
+                <svg class="cat-chevron-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+              </button>
+            </div>
+            <div class="discover-links-sublist" id="catGroup_${safeCatId}">
+              ${links.map((link) => {
+                const linkType = (link.type || '').toLowerCase();
+                const linkTitle = (link.title || '').toLowerCase();
+                const linkUrl = (link.url || '').toLowerCase();
+                return `
+                <div class="discover-link-row" data-type="${linkType}" data-title="${escapeHtml(linkTitle)}" data-url="${escapeHtml(linkUrl)}" data-cat="${safeCatId}">
+                  <input type="checkbox" class="link-checkbox cat-item-${safeCatId}" value="${escapeHtml(link.url)}" checked onchange="updateSelectedDiscoverCount()">
+                  <span class="badge ${link.type === 'pdf' ? 'badge-failed' : 'badge-type'}" style="font-size: 0.68rem; text-transform: uppercase;">${link.type.toUpperCase()}</span>
+                  <div style="flex: 1; word-break: break-all; min-width: 0;">
+                    <div style="font-weight: 600; color: #f1f5f9; margin-bottom: 2px;">${escapeHtml(link.title || link.url)}</div>
+                    <a href="${escapeHtml(link.url)}" target="_blank" style="font-size: 0.72rem; color: #60a5fa; text-decoration: none;">${escapeHtml(link.url)} ↗</a>
+                  </div>
+                </div>
+              `;}).join('')}
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      updateSelectedDiscoverCount();
+    }
+
+    function toggleCategoryAccordion(catId) {
+      const block = document.getElementById(`catBlock_${catId}`);
+      if (block) {
+        block.classList.toggle('expanded');
+      }
+    }
+
+    function toggleAllCategoryAccordions(expand) {
+      document.querySelectorAll('.discover-category-block').forEach(b => {
+        if (expand) {
+          b.classList.add('expanded');
+        } else {
+          b.classList.remove('expanded');
+        }
+      });
+    }
+
+    function toggleCategoryCheckboxes(catId, checked) {
+      document.querySelectorAll(`.cat-item-${catId}`).forEach(cb => cb.checked = checked);
+      updateSelectedDiscoverCount();
+    }
+
+    function toggleAllDiscoverCheckboxes(checked) {
+      document.querySelectorAll('.link-checkbox').forEach(cb => cb.checked = checked);
+      document.querySelectorAll('.cat-master-checkbox').forEach(cb => cb.checked = checked);
+      updateSelectedDiscoverCount();
+      showAlert(checked ? "All discovered links selected." : "All links deselected.", checked ? "success" : "info");
+    }
+
+    function updateSelectedDiscoverCount() {
+      const checked = document.querySelectorAll('.link-checkbox:checked').length;
+      document.getElementById('discoverSelectedCount').textContent = checked;
+      const startBtn = document.getElementById('startApprovedCrawlBtn');
+      if (startBtn) startBtn.disabled = (checked === 0);
+    }
+
+    // --------------------------------------------------------------------------
+    // Smart Filter & Quick Preset Selection
+    // --------------------------------------------------------------------------
+    function filterDiscoverLinks(query) {
+      const term = (query || '').trim().toLowerCase();
+      const rows = document.querySelectorAll('.discover-link-row');
+      const statusEl = document.getElementById('discoverFilterStatus');
+      const selectFilteredBtn = document.getElementById('selectFilteredBtn');
+
+      if (!term) {
+        rows.forEach(r => r.style.display = '');
+        document.querySelectorAll('.discover-category-block').forEach(b => b.style.display = '');
+        if (statusEl) statusEl.textContent = '';
+        if (selectFilteredBtn) selectFilteredBtn.style.display = 'none';
+        return;
+      }
+
+      if (selectFilteredBtn) selectFilteredBtn.style.display = 'inline-block';
+      let visibleCount = 0;
+
+      rows.forEach(row => {
+        const title = row.getAttribute('data-title') || '';
+        const url = row.getAttribute('data-url') || '';
+        const type = row.getAttribute('data-type') || '';
+        const matches = title.includes(term) || url.includes(term) || type.includes(term);
+        if (matches) {
+          row.style.display = '';
+          visibleCount++;
+        } else {
+          row.style.display = 'none';
+        }
+      });
+
+      document.querySelectorAll('.discover-category-block').forEach(block => {
+        const visibleRows = block.querySelectorAll('.discover-link-row:not([style*="display: none"])');
+        if (visibleRows.length > 0) {
+          block.style.display = '';
+          block.classList.add('expanded');
+        } else {
+          block.style.display = 'none';
+        }
+      });
+
+      if (statusEl) statusEl.textContent = `Found ${visibleCount} matches`;
+    }
+
+    function clearDiscoverFilter() {
+      const input = document.getElementById('discoverFilterInput');
+      if (input) input.value = '';
+      filterDiscoverLinks('');
+    }
+
+    function selectOnlyPdfs() {
+      document.querySelectorAll('.link-checkbox').forEach(cb => cb.checked = false);
+      document.querySelectorAll('.cat-master-checkbox').forEach(cb => cb.checked = false);
+
+      let pdfCount = 0;
+      document.querySelectorAll('.discover-link-row').forEach(row => {
+        const type = (row.getAttribute('data-type') || '').toLowerCase();
+        const url = (row.getAttribute('data-url') || '').toLowerCase();
+        const cb = row.querySelector('.link-checkbox');
+        if (cb && (type === 'pdf' || url.endsWith('.pdf') || url.includes('.pdf?'))) {
+          cb.checked = true;
+          pdfCount++;
+        }
+      });
+
+      toggleAllCategoryAccordions(true);
+      updateSelectedDiscoverCount();
+      showAlert(`Selected ${pdfCount} PDF document links.`);
+    }
+
+    function selectOnlyRegulations() {
+      document.querySelectorAll('.link-checkbox').forEach(cb => cb.checked = false);
+      document.querySelectorAll('.cat-master-checkbox').forEach(cb => cb.checked = false);
+
+      const regKeywords = [
+        'regulation', 'rule', 'circular', 'act', 'guideline', 'procedure',
+        'statute', 'compliance', 'legal', 'law', 'policy', 'standard', 'framework', 'code'
+      ];
+
+      let regCount = 0;
+      document.querySelectorAll('.discover-link-row').forEach(row => {
+        const title = (row.getAttribute('data-title') || '').toLowerCase();
+        const url = (row.getAttribute('data-url') || '').toLowerCase();
+        const cat = (row.getAttribute('data-cat') || '').toLowerCase();
+        const cb = row.querySelector('.link-checkbox');
+
+        const isReg = regKeywords.some(kw => title.includes(kw) || url.includes(kw) || cat.includes(kw));
+        if (cb && isReg) {
+          cb.checked = true;
+          regCount++;
+        }
+      });
+
+      toggleAllCategoryAccordions(true);
+      updateSelectedDiscoverCount();
+      showAlert(`Selected ${regCount} regulation & compliance links.`);
+    }
+
+    function selectFilteredLinks() {
+      const visibleRows = document.querySelectorAll('.discover-link-row:not([style*="display: none"])');
+      let count = 0;
+      visibleRows.forEach(row => {
+        const cb = row.querySelector('.link-checkbox');
+        if (cb) {
+          cb.checked = true;
+          count++;
+        }
+      });
+      updateSelectedDiscoverCount();
+      showAlert(`Selected ${count} filtered links.`);
+    }
+
+    // --------------------------------------------------------------------------
+    // Captcha Challenge & Resume Handlers
+    // --------------------------------------------------------------------------
+    let currentCaptchaUrl = null;
+
+    function copyCaptchaLink() {
+      const urlToCopy = currentCaptchaUrl || document.getElementById('crawlerCurrentUrlLink')?.href || document.getElementById('crawlerRootUrl')?.value;
+      if (urlToCopy) {
+        navigator.clipboard.writeText(urlToCopy).then(() => {
+          showAlert("URL copied to clipboard! You can paste and open it in any browser.");
+        }).catch(() => {
+          showAlert(`URL: ${urlToCopy}`);
+        });
+      } else {
+        showAlert("No URL available to copy.", "error");
+      }
+    }
+
+    function openCaptchaInBrowser(e) {
+      if (e && e.preventDefault) e.preventDefault();
+      let target = currentCaptchaUrl || document.getElementById('crawlerCurrentUrlLink')?.href || document.getElementById('crawlerRootUrl')?.value;
+      if (!target) {
+        showAlert("No blocked URL recorded.", "error");
+        return;
+      }
+      target = target.trim();
+      if (!/^https?:\/\//i.test(target)) target = 'https://' + target;
+
+      // Try opening via direct anchor click first (avoids browser popup blocker)
+      try {
+        const link = document.createElement('a');
+        link.href = target;
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      } catch (err) {
+        try {
+          window.open(target, '_blank', 'noopener,noreferrer');
+        } catch (e2) {
+          window.location.href = target;
+        }
+      }
+    }
+
+    async function resumeActiveCrawler(crawlId = null) {
+      const targetId = crawlId || activeCrawlerId;
+      const url = targetId ? `/admin/api/crawl/resume/${targetId}` : `/admin/api/crawl/resume`;
+      try {
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Admin-Password': 'cdc-admin-2026'
+          }
+        });
+        const data = await res.json();
+        if (res.ok) {
+          activeCrawlerId = data.crawl_id || targetId;
+          showAlert(`Crawler resumed! Continues scraping without duplicate records.`);
+          const captchaBanner = document.getElementById('crawlerCaptchaAlert');
+          if (captchaBanner) captchaBanner.style.display = 'none';
+          currentCaptchaUrl = null;
+          if (data.job) updateCrawlerUI(data.job);
+          if (activeCrawlerId) {
+            startCrawlerPolling(activeCrawlerId);
+          }
+          loadCrawlJobs();
+        } else {
+          showAlert(data.error || 'Failed to resume crawler', 'error');
+        }
+      } catch (err) {
+        showAlert(`Error resuming crawler: ${err.message}`, 'error');
+      }
+    }
+
+    async function launchApprovedCrawl() {
+      const checkedBoxes = Array.from(document.querySelectorAll('.link-checkbox:checked'));
+      const approvedUrls = checkedBoxes.map(cb => cb.value);
+
+      if (approvedUrls.length === 0) {
+        showAlert("Please select at least 1 link to crawl.", "error");
+        return;
+      }
+
+      const rootUrl = document.getElementById('crawlerRootUrl').value.trim();
+      const delaySeconds = parseFloat(document.getElementById('crawlerSpeed').value);
+      const autoApprove = document.getElementById('crawlerAutoApprove').checked;
+      const stealthMode = document.getElementById('crawlerStealthMode') ? document.getElementById('crawlerStealthMode').checked : true;
+
+      closeDiscoverModal();
+      showAlert(`Initiating crawl for ${approvedUrls.length} pre-approved links...`);
+
+      try {
+        const res = await fetch('/admin/api/crawl/start', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            root_url: rootUrl,
+            max_pages: approvedUrls.length,
+            delay_seconds: delaySeconds,
+            auto_approve: autoApprove,
+            allowed_urls: approvedUrls,
+            stealth_mode: stealthMode
+          })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          activeCrawlerId = data.crawl_id;
+          showAlert(`Crawler running on ${approvedUrls.length} approved targets (ID: ${activeCrawlerId})`);
+          clearCrawlerLogs();
+          updateCrawlerUI(data.job);
+          startCrawlerPolling(activeCrawlerId);
+          loadCrawlJobs();
+        } else {
+          showAlert(data.error || 'Failed to start crawl job', 'error');
+        }
+      } catch (err) {
+        showAlert(`Error starting crawler: ${err.message}`, 'error');
+      }
+    }
+
+    // Crawl Form Submit
+    document.getElementById('crawlerForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const rootUrl = document.getElementById('crawlerRootUrl').value.trim();
+      const maxPages = parseInt(document.getElementById('crawlerMaxPages').value, 10);
+      const delaySeconds = parseFloat(document.getElementById('crawlerSpeed').value);
+      const autoApprove = document.getElementById('crawlerAutoApprove').checked;
+      const stealthMode = document.getElementById('crawlerStealthMode') ? document.getElementById('crawlerStealthMode').checked : true;
+      const startBtn = document.getElementById('startCrawlBtn');
+
+      if (!rootUrl) return;
+      startBtn.disabled = true;
+
+      try {
+        const res = await fetch('/admin/api/crawl/start', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            root_url: rootUrl,
+            max_pages: maxPages,
+            delay_seconds: delaySeconds,
+            auto_approve: autoApprove,
+            stealth_mode: stealthMode
+          })
+        });
+
+        const data = await res.json();
+        if (res.ok) {
+          activeCrawlerId = data.crawl_id;
+          showAlert(`Autonomous crawler initiated (ID: ${activeCrawlerId})`);
+          clearCrawlerLogs();
+          updateCrawlerUI(data.job);
+          startCrawlerPolling(activeCrawlerId);
+          loadCrawlJobs();
+        } else {
+          showAlert(data.error || 'Failed to start crawl job', 'error');
+          startBtn.disabled = false;
+        }
+      } catch (err) {
+        showAlert(`Error starting crawler: ${err.message}`, 'error');
+        startBtn.disabled = false;
+      }
+    });
+
+    async function stopActiveCrawler() {
+      if (!activeCrawlerId) return;
+      const stopBtn = document.getElementById('stopCrawlBtn');
+      if (stopBtn) stopBtn.disabled = true;
+
+      try {
+        const res = await fetch(`/admin/api/crawl/stop/${activeCrawlerId}`, { method: 'POST' });
+        const data = await res.json();
+        if (res.ok) {
+          showAlert(`Stop signal sent to crawler ${activeCrawlerId}`);
+          updateCrawlerUI(data.job);
+        } else {
+          showAlert(data.error || 'Failed to stop crawler', 'error');
+        }
+      } catch (err) {
+        showAlert(`Error stopping crawler: ${err.message}`, 'error');
+      }
+    }
+
+    function startCrawlerPolling(crawlId) {
+      if (crawlerPollingInterval) clearInterval(crawlerPollingInterval);
+
+      let lastLogsCount = 0;
+      crawlerPollingInterval = setInterval(async () => {
+        try {
+          const res = await fetch(`/admin/api/crawl/status/${crawlId}`);
+          if (!res.ok) return;
+          const data = await res.json();
+          const job = data.job;
+          if (!job) return;
+
+          updateCrawlerUI(job);
+
+          // Stream new logs
+          const logs = job.logs || [];
+          if (logs.length > lastLogsCount) {
+            const newLogs = logs.slice(lastLogsCount);
+            newLogs.forEach(l => appendCrawlerLog(l));
+            lastLogsCount = logs.length;
+          }
+
+          // If job reached final state
+          if (job.status === 'completed' || job.status === 'stopped' || job.status === 'failed') {
+            clearInterval(crawlerPollingInterval);
+            crawlerPollingInterval = null;
+            loadCrawlJobs();
+            updateCounters();
+            if (job.status === 'completed') {
+              showAlert(`Crawl job completed successfully! Processed ${job.pages_crawled} pages.`);
+              if (job.auto_approve) loadIndexedDocs();
+              else loadReviewQueue();
+            }
+          }
+        } catch (err) {
+          console.error("Crawler poll error:", err);
+        }
+      }, 1000);
+    }
+
+    async function loadCrawlJobs() {
+      try {
+        const res = await fetch('/admin/api/crawl/jobs');
+        if (!res.ok) return;
+        const data = await res.json();
+        renderCrawlJobs(data.jobs || []);
+      } catch (err) {
+        console.error("Error loading crawl jobs:", err);
+      }
+    }
+
+    function renderCrawlJobs(jobs) {
+      const tbody = document.getElementById('crawlerJobsTableBody');
+      if (!tbody) return;
+
+      if (!jobs || jobs.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="9" class="empty-state">
+              <div class="empty-icon">🌐</div>
+              <p>No crawl jobs recorded yet. Launch your first deep site crawl above.</p>
+            </td>
+          </tr>`;
+        return;
+      }
+
+      tbody.innerHTML = jobs.map(j => {
+        let badgeClass = 'badge-pending';
+        if (j.status === 'running') badgeClass = 'badge-processing';
+        if (j.status === 'completed') badgeClass = 'badge-done';
+        if (j.status === 'failed') badgeClass = 'badge-failed';
+
+        const modeBadge = (j.auto_approve 
+          ? `<span class="badge badge-done" style="font-size: 0.68rem;">Direct Publish</span>`
+          : `<span class="badge badge-type" style="font-size: 0.68rem;">Review Queue</span>`) +
+          (j.stealth_mode !== false ? ` <span class="badge" style="background: rgba(99, 102, 241, 0.2); color: #c7d2fe; font-size: 0.68rem; margin-top: 3px; display: inline-flex;">🥷 Stealth</span>` : ``);
+
+        return `
+          <tr>
+            <td><span class="font-mono" style="font-size: 0.78rem;">${j.crawl_id}</span></td>
+            <td>
+              <strong>${j.base_domain}</strong>
+              <div style="font-size: 0.74rem; color: var(--text-secondary); word-break: break-all;">${j.root_url}</div>
+            </td>
+            <td><span class="badge ${badgeClass}">${j.status}</span></td>
+            <td><strong>${j.pages_crawled}</strong> / ${j.max_pages}</td>
+            <td>${j.pdfs_extracted}</td>
+            <td><strong>${j.chunks_indexed}</strong></td>
+            <td>${modeBadge}</td>
+            <td><span style="font-size: 0.78rem; color: var(--text-secondary);">${j.start_time || '—'}</span></td>
+            <td>
+              <div style="display: flex; gap: 4px; align-items: center; flex-wrap: wrap;">
+                <button class="btn-action btn-preview" onclick="attachToCrawler('${j.crawl_id}')">Monitor</button>
+                ${(j.status === 'paused' || j.has_captcha_block || j.status === 'stopped' || j.status === 'failed') ? 
+                  `<button class="btn-action btn-approve" onclick="resumeActiveCrawler('${j.crawl_id}')" title="Resume this crawler from where it left off" style="padding: 0.35rem 0.65rem; font-size: 0.74rem;">▶️ Resume</button>` : ''}
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    async function attachToCrawler(crawlId) {
+      activeCrawlerId = crawlId;
+      try {
+        const res = await fetch(`/admin/api/crawl/status/${crawlId}`);
+        if (!res.ok) return;
+        const data = await res.json();
+        const job = data.job;
+        if (!job) return;
+
+        updateCrawlerUI(job);
+        clearCrawlerLogs();
+        (job.logs || []).forEach(l => appendCrawlerLog(l));
+
+        if (job.status === 'running') {
+          startCrawlerPolling(crawlId);
+        }
+        showAlert(`Attached to crawl job: ${crawlId}`);
+      } catch (err) {
+        showAlert(`Failed to attach to crawl job: ${err.message}`, 'error');
+      }
+    }
+
+    // --------------------------------------------------------------------------
+    // Admin Authentication Handlers
+    // --------------------------------------------------------------------------
+    const authModal = document.getElementById('adminAuthModal');
+    const authForm = document.getElementById('adminLoginForm');
+    const authErrorMsg = document.getElementById('authErrorMsg');
+    const authPwdInput = document.getElementById('adminPwdInput');
+    const logoutBtn = document.getElementById('adminLogoutBtn');
+    const togglePwdBtn = document.getElementById('togglePwdVisibility');
+
+    if (togglePwdBtn && authPwdInput) {
+      togglePwdBtn.addEventListener('click', () => {
+        const isPwd = authPwdInput.type === 'password';
+        authPwdInput.type = isPwd ? 'text' : 'password';
+      });
+    }
+
+    function showAuthModal() {
+      if (authModal) authModal.classList.add('active');
+      if (logoutBtn) logoutBtn.style.display = 'none';
+      if (authPwdInput) {
+        authPwdInput.value = '';
+        setTimeout(() => authPwdInput.focus(), 150);
+      }
+    }
+
+    function hideAuthModal() {
+      if (authModal) authModal.classList.remove('active');
+      if (logoutBtn) logoutBtn.style.display = 'inline-flex';
+      if (authErrorMsg) authErrorMsg.style.display = 'none';
+    }
+
+    if (authForm) {
+      authForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const pwd = authPwdInput.value.trim();
+        try {
+          const res = await fetch('/admin/api/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ password: pwd })
+          });
+          const data = await res.json();
+          if (res.ok && data.success) {
+            hideAuthModal();
+            showAlert('Admin dashboard unlocked successfully.');
+            initDashboardData();
+          } else {
+            authErrorMsg.textContent = data.error || 'Incorrect password. Access denied.';
+            authErrorMsg.style.display = 'block';
+          }
+        } catch (err) {
+          authErrorMsg.textContent = 'Server connection error. Please ensure backend is running.';
+          authErrorMsg.style.display = 'block';
+        }
+      });
+    }
+
+    if (logoutBtn) {
+      logoutBtn.addEventListener('click', async () => {
+        try {
+          await fetch('/admin/api/logout', { method: 'POST' });
+          showAuthModal();
+          showAlert('Logged out successfully.');
+        } catch (err) {
+          showAuthModal();
+        }
+      });
+    }
+
+    async function checkAuthAndInit() {
+      try {
+        const res = await fetch('/admin/api/auth-status');
+        const data = await res.json();
+        if (data.authenticated) {
+          hideAuthModal();
+          initDashboardData();
+        } else {
+          showAuthModal();
+        }
+      } catch (err) {
+        showAuthModal();
+      }
+    }
+
+    function initDashboardData() {
+      loadJobs();
+      loadReviewQueue();
+      loadIndexedDocs();
+      loadCrawlJobs();
+      updateCounters();
+    }
+
+    // Initial Load
+    document.addEventListener('DOMContentLoaded', () => {
+      checkAuthAndInit();
+    });
+  </script>
+</body>
+</html>

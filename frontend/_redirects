@@ -1,0 +1,14 @@
+# ==============================================================================
+# Cloudflare Pages Proxy Configuration (_redirects)
+# ==============================================================================
+# When you deploy your backend (e.g. Render, Railway, Fly.io, Cloud Run, or VPS),
+# replace YOUR_BACKEND_URL with your live backend domain (e.g. https://cdc-api.onrender.com).
+#
+# Status code 200 creates a seamless transparent proxy (rewrite) without changing
+# the browser's address bar or triggering CORS issues.
+# ==============================================================================
+
+# /ask https://YOUR_BACKEND_URL/ask 200
+# /api/* https://YOUR_BACKEND_URL/api/:splat 200
+# /admin https://YOUR_BACKEND_URL/admin 200
+# /admin/* https://YOUR_BACKEND_URL/admin/:splat 200

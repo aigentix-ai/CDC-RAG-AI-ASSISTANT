@@ -1,0 +1,1282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ doc.title }} — CDC Pakistan Regulatory Archive</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --cdc-green: #047857;
+      --cdc-green-dark: #065f46;
+      --cdc-green-light: #ecfdf5;
+      --color-bg: #f8fafc;
+      --color-surface: #ffffff;
+      --color-border: #e2e8f0;
+      --color-text-main: #0f172a;
+      --color-text-muted: #64748b;
+      --color-accent-blue: #0284c7;
+      --color-accent-blue-light: #e0f2fe;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.06);
+      --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.08), 0 2px 4px -2px rgba(0,0,0,0.04);
+      --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -4px rgba(0,0,0,0.05);
+      --shadow-xl: 0 20px 25px -5px rgba(0,0,0,0.12), 0 8px 10px -6px rgba(0,0,0,0.04);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background-color: var(--color-bg);
+      color: var(--color-text-main);
+      line-height: 1.65;
+      padding-bottom: 80px;
+    }
+
+    /* Top Utility Header */
+    .top-navbar {
+      background: var(--color-surface);
+      border-bottom: 1px solid var(--color-border);
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .nav-container {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: var(--color-text-main);
+    }
+
+    .brand-icon {
+      width: 38px;
+      height: 38px;
+      background: linear-gradient(135deg, #059669, #047857);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #ffffff;
+      box-shadow: 0 2px 5px rgba(4, 120, 87, 0.25);
+    }
+
+    .brand-title {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #0f172a;
+      letter-spacing: -0.01em;
+      line-height: 1.2;
+    }
+
+    .brand-sub {
+      font-size: 0.72rem;
+      color: var(--cdc-green);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 14px;
+      border-radius: 8px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.15s ease;
+      border: 1px solid transparent;
+    }
+
+    .btn-secondary {
+      background: #f1f5f9;
+      color: #334155;
+      border-color: #e2e8f0;
+    }
+
+    .btn-secondary:hover {
+      background: #e2e8f0;
+      color: #0f172a;
+    }
+
+    .btn-primary {
+      background: var(--cdc-green);
+      color: #ffffff;
+    }
+
+    .btn-primary:hover {
+      background: var(--cdc-green-dark);
+    }
+
+    /* Main Content Wrapper */
+    .content-container {
+      max-width: 960px;
+      margin: 32px auto 0 auto;
+      padding: 0 24px;
+    }
+
+    /* Document Header Card */
+    .doc-header-card {
+      background: var(--color-surface);
+      border-radius: 16px;
+      border: 1px solid var(--color-border);
+      padding: 32px;
+      box-shadow: var(--shadow-sm);
+      margin-bottom: 24px;
+    }
+
+    .badges-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 20px;
+    }
+
+    .pill-green {
+      background: var(--cdc-green-light);
+      color: #065f46;
+      border: 1px solid #a7f3d0;
+    }
+
+    .pill-blue {
+      background: var(--color-accent-blue-light);
+      color: #0369a1;
+      border: 1px solid #bae6fd;
+    }
+
+    .pill-category {
+      background: #f8fafc;
+      color: #475569;
+      border: 1px solid #cbd5e1;
+    }
+
+    .doc-title {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 1.55rem;
+      font-weight: 700;
+      color: #0f172a;
+      letter-spacing: -0.02em;
+      line-height: 1.3;
+      margin-bottom: 20px;
+    }
+
+    .meta-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      padding: 16px;
+      background: #f8fafc;
+      border-radius: 12px;
+      border: 1px solid #edf2f7;
+      font-size: 0.82rem;
+    }
+
+    .meta-item {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .meta-label {
+      color: var(--color-text-muted);
+      font-size: 0.72rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .meta-val {
+      color: var(--color-text-main);
+      font-weight: 600;
+      word-break: break-all;
+    }
+
+    .meta-code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.78rem;
+      color: #047857;
+      background: #ecfdf5;
+      padding: 2px 6px;
+      border-radius: 4px;
+      display: inline-block;
+      width: fit-content;
+    }
+
+    /* Document Body Container */
+    .doc-body-card {
+      background: var(--color-surface);
+      border-radius: 16px;
+      border: 1px solid var(--color-border);
+      padding: 40px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .body-section-title {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--color-text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 24px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--color-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .doc-text-content {
+      font-size: 0.95rem;
+      color: #1e293b;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      line-height: 1.8;
+      font-family: 'Inter', system-ui, sans-serif;
+    }
+
+    .doc-text-content p {
+      margin-bottom: 1.25em;
+    }
+
+    .disclaimer-banner {
+      margin-top: 32px;
+      padding: 16px 20px;
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      border-radius: 12px;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      font-size: 0.82rem;
+      color: #166534;
+    }
+
+    .disclaimer-icon {
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    /* ========================================================================== */
+    /* DYNAMIC FLOATING AI SEARCH BOT (MODERN DOCK & SLIDE-OVER DRAWER)           */
+    /* ========================================================================== */
+
+    /* Floating Side Trigger Button */
+    .ai-floating-trigger {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: linear-gradient(135deg, #047857 0%, #065f46 100%);
+      color: #ffffff;
+      padding: 12px 18px;
+      border-radius: 50px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      box-shadow: 0 10px 25px -4px rgba(4, 120, 87, 0.4), 0 6px 12px -2px rgba(4, 120, 87, 0.2);
+      cursor: pointer;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-weight: 700;
+      font-size: 0.88rem;
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      user-select: none;
+    }
+
+    .ai-floating-trigger:hover {
+      transform: translateY(-3px) scale(1.02);
+      box-shadow: 0 14px 28px -4px rgba(4, 120, 87, 0.5), 0 8px 14px -2px rgba(4, 120, 87, 0.25);
+    }
+
+    .ai-floating-trigger:active {
+      transform: translateY(-1px);
+    }
+
+    .trigger-pulse-dot {
+      width: 9px;
+      height: 9px;
+      background-color: #34d399;
+      border-radius: 50%;
+      position: relative;
+    }
+
+    .trigger-pulse-dot::after {
+      content: '';
+      position: absolute;
+      top: -3px;
+      left: -3px;
+      right: -3px;
+      bottom: -3px;
+      border-radius: 50%;
+      background: rgba(52, 211, 153, 0.5);
+      animation: pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+
+    @keyframes pulse-ring {
+      0% { transform: scale(0.9); opacity: 0.9; }
+      50% { transform: scale(1.6); opacity: 0; }
+      100% { transform: scale(0.9); opacity: 0; }
+    }
+
+    .trigger-kbd {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      font-weight: 600;
+      background: rgba(255, 255, 255, 0.2);
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: #e2e8f0;
+      margin-left: 2px;
+    }
+
+    /* Drawer Backdrop */
+    .ai-drawer-backdrop {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(15, 23, 42, 0.35);
+      backdrop-filter: blur(2px);
+      z-index: 140;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+
+    .ai-drawer-backdrop.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    /* Slide-out Drawer Panel */
+    .ai-drawer {
+      position: fixed;
+      top: 0;
+      right: -480px;
+      width: 440px;
+      max-width: 94vw;
+      height: 100vh;
+      background: var(--color-surface);
+      box-shadow: -10px 0 35px rgba(0, 0, 0, 0.16);
+      z-index: 150;
+      display: flex;
+      flex-direction: column;
+      transition: right 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .ai-drawer.open {
+      right: 0;
+    }
+
+    /* Drawer Header */
+    .ai-drawer-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--color-border);
+      background: #f8fafc;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .drawer-header-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .drawer-logo-icon {
+      width: 32px;
+      height: 32px;
+      background: var(--cdc-green);
+      color: #fff;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .drawer-title-group h3 {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #0f172a;
+      line-height: 1.2;
+    }
+
+    .drawer-title-group p {
+      font-size: 0.72rem;
+      color: var(--cdc-green);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    .drawer-close-btn {
+      background: transparent;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      width: 30px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: #64748b;
+      transition: all 0.15s ease;
+    }
+
+    .drawer-close-btn:hover {
+      background: #e2e8f0;
+      color: #0f172a;
+    }
+
+    /* Scope Notification Bar */
+    .ai-scope-bar {
+      background: #ecfdf5;
+      border-bottom: 1px solid #a7f3d0;
+      padding: 8px 16px;
+      font-size: 0.74rem;
+      color: #065f46;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 500;
+    }
+
+    /* Drawer Scrollable Content Area */
+    .ai-drawer-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      background: #ffffff;
+    }
+
+    /* Prompt Suggestion Chips */
+    .quick-chips-section {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .quick-chips-label {
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--color-text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .quick-chips-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .chip-btn {
+      background: #f1f5f9;
+      border: 1px solid #e2e8f0;
+      border-radius: 18px;
+      padding: 6px 11px;
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: #334155;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      text-align: left;
+    }
+
+    .chip-btn:hover {
+      background: #e2e8f0;
+      color: var(--cdc-green-dark);
+      border-color: #cbd5e1;
+    }
+
+    /* Chat Messages */
+    .chat-msg {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      animation: msgFadeIn 0.25s ease;
+    }
+
+    @keyframes msgFadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .chat-msg-user {
+      align-self: flex-end;
+      max-width: 88%;
+    }
+
+    .chat-bubble-user {
+      background: #047857;
+      color: #ffffff;
+      padding: 10px 14px;
+      border-radius: 14px 14px 2px 14px;
+      font-size: 0.85rem;
+      line-height: 1.45;
+    }
+
+    .chat-msg-ai {
+      align-self: flex-start;
+      width: 100%;
+    }
+
+    .chat-bubble-ai {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 14px 14px 14px 2px;
+      padding: 14px 16px;
+      font-size: 0.85rem;
+      color: #1e293b;
+      line-height: 1.6;
+    }
+
+    .chat-bubble-ai p {
+      margin-bottom: 8px;
+    }
+
+    .chat-bubble-ai p:last-child {
+      margin-bottom: 0;
+    }
+
+    .chat-bubble-ai ul, .chat-bubble-ai ol {
+      margin-left: 18px;
+      margin-bottom: 8px;
+    }
+
+    .chat-bubble-ai strong {
+      color: #0f172a;
+      font-weight: 600;
+    }
+
+    /* Dynamic Searching State ("How other modern sites do it") */
+    .ai-searching-box {
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      border-radius: 12px;
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      animation: msgFadeIn 0.2s ease;
+    }
+
+    .searching-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #166534;
+    }
+
+    .searching-radar-spinner {
+      width: 14px;
+      height: 14px;
+      border: 2px solid #86efac;
+      border-top-color: #047857;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Animated Shimmer Bar */
+    .shimmer-progress-bar {
+      width: 100%;
+      height: 4px;
+      background: #dcfce7;
+      border-radius: 2px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .shimmer-progress-bar::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(90deg, transparent, #10b981, transparent);
+      animation: shimmerMove 1.5s infinite;
+    }
+
+    @keyframes shimmerMove {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(100%); }
+    }
+
+    .searching-step-text {
+      font-size: 0.76rem;
+      color: #15803d;
+      font-weight: 500;
+      transition: all 0.2s ease;
+    }
+
+    /* Drawer Footer Input */
+    .ai-drawer-footer {
+      padding: 14px 18px;
+      border-top: 1px solid var(--color-border);
+      background: #f8fafc;
+    }
+
+    .ai-input-wrapper {
+      display: flex;
+      align-items: flex-end;
+      gap: 8px;
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 12px;
+      padding: 8px 12px;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .ai-input-wrapper:focus-within {
+      border-color: var(--cdc-green);
+      box-shadow: 0 0 0 3px rgba(4, 120, 87, 0.12);
+    }
+
+    .ai-input-textarea {
+      flex: 1;
+      border: none;
+      outline: none;
+      resize: none;
+      font-family: inherit;
+      font-size: 0.85rem;
+      color: var(--color-text-main);
+      max-height: 100px;
+      min-height: 22px;
+      line-height: 1.4;
+      background: transparent;
+    }
+
+    .ai-send-btn {
+      width: 32px;
+      height: 32px;
+      background: var(--cdc-green);
+      color: #ffffff;
+      border: none;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background 0.15s ease;
+      flex-shrink: 0;
+    }
+
+    .ai-send-btn:hover:not(:disabled) {
+      background: var(--cdc-green-dark);
+    }
+
+    .ai-send-btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    /* Print View Safeguards */
+    @media print {
+      body {
+        background: #ffffff;
+        color: #000000;
+        padding-bottom: 0;
+      }
+      .top-navbar, .nav-actions, .disclaimer-banner, .ai-floating-trigger, .ai-drawer, .ai-drawer-backdrop {
+        display: none !important;
+      }
+      .doc-header-card, .doc-body-card {
+        border: none;
+        box-shadow: none;
+        padding: 0;
+      }
+      .content-container {
+        max-width: 100%;
+        padding: 0;
+        margin: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Sticky Navigation -->
+  <nav class="top-navbar">
+    <div class="nav-container">
+      <a href="/" class="nav-brand">
+        <div class="brand-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            <path d="m9 12 2 2 4-4"/>
+          </svg>
+        </div>
+        <div>
+          <div class="brand-title">CDC Pakistan Regulatory Archive</div>
+          <div class="brand-sub">Verified Local Repository Backup</div>
+        </div>
+      </a>
+
+      <div class="nav-actions">
+        <button class="btn btn-secondary" onclick="copyDocumentText()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+          </svg>
+          <span id="copyBtnText">Copy Text</span>
+        </button>
+
+        <button class="btn btn-secondary" onclick="window.print()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="6 9 6 2 18 2 18 9"/>
+            <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
+            <rect x="6" y="14" width="12" height="8"/>
+          </svg>
+          <span>Print / PDF</span>
+        </button>
+
+        <a href="/" class="btn btn-primary">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3">
+            <polyline points="15 18 9 12 15 6"/>
+          </svg>
+          <span>Back to Chat</span>
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Container -->
+  <main class="content-container">
+    
+    <!-- Document Header & Metadata -->
+    <header class="doc-header-card">
+      <div class="badges-row">
+        <span class="pill pill-green">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+          Verified Regulatory Record
+        </span>
+
+        <span class="pill pill-blue">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="7 10 12 15 17 10"/>
+            <line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+          Guaranteed Local Backup (Offline Safe)
+        </span>
+
+        {% if doc.category %}
+        <span class="pill pill-category">
+          Category: {{ doc.category }}
+        </span>
+        {% endif %}
+      </div>
+
+      <h1 class="doc-title" id="pageDocTitle">{{ doc.title }}</h1>
+
+      <div class="meta-grid">
+        <div class="meta-item">
+          <span class="meta-label">Document Hash ID</span>
+          <span class="meta-val"><span class="meta-code" id="pageDocId">{{ doc.doc_id }}</span></span>
+        </div>
+
+        <div class="meta-item">
+          <span class="meta-label">Archived / Scraped Date</span>
+          <span class="meta-val" id="pageArchivedDate" data-raw-date="{{ doc.date_scraped or '' }}">{{ doc.formatted_date or doc.date_scraped or 'Archived via CDC RAG' }}</span>
+        </div>
+
+        <div class="meta-item">
+          <span class="meta-label">Format / Source Type</span>
+          <span class="meta-val" style="text-transform: uppercase;">{{ doc.source_type or 'PDF / Document' }}</span>
+        </div>
+
+        <div class="meta-item">
+          <span class="meta-label">Original Web Source</span>
+          <span class="meta-val">
+            {% if doc.source_url and doc.source_url.startswith('http') %}
+            <a href="{{ doc.source_url }}" target="_blank" rel="noopener noreferrer" style="color: var(--color-accent-blue); text-decoration: none; font-weight: 600;">
+              Visit Original Source ↗
+            </a>
+            {% else %}
+            <span style="color: var(--color-text-muted);">Local Archive File ({{ doc.source_url }})</span>
+            {% endif %}
+          </span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Document Content Body -->
+    <article class="doc-body-card">
+      <div class="body-section-title">
+        <span>Full Regulatory Text Content</span>
+        <span style="font-size:0.75rem; color:var(--cdc-green); font-weight:600;">Indexed &amp; Audited</span>
+      </div>
+
+      <div class="doc-text-content" id="documentContent">{{ doc.text }}</div>
+
+      <!-- Legal / Safeguard Notice -->
+      <div class="disclaimer-banner">
+        <svg class="disclaimer-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          <path d="m9 12 2 2 4-4"/>
+        </svg>
+        <div>
+          <strong>Local Archive Safeguard:</strong> This document is fully synchronized and preserved in your local CDC Regulatory Knowledge Base. Even if public websites experience downtime, network blocks, or URL alterations, this authenticated version remains permanently accessible for regulatory queries and audits.
+        </div>
+      </div>
+    </article>
+
+  </main>
+
+  <!-- ======================================================================== -->
+  <!-- FLOATING AI SEARCH TRIGGER BUTTON                                        -->
+  <!-- ======================================================================== -->
+  <button type="button" class="ai-floating-trigger" id="aiTriggerBtn" title="Ask AI questions about this document (Ctrl + K)">
+    <span class="trigger-pulse-dot"></span>
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 2a4 4 0 0 0-4 4v2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2h-2V6a4 4 0 0 0-4-4z"/>
+      <circle cx="9" cy="13" r="1"/>
+      <circle cx="15" cy="13" r="1"/>
+      <path d="M10 17h4"/>
+    </svg>
+    <span>Ask AI in Doc</span>
+    <span class="trigger-kbd">Ctrl+K</span>
+  </button>
+
+  <!-- DRAWER BACKDROP -->
+  <div class="ai-drawer-backdrop" id="aiDrawerBackdrop"></div>
+
+  <!-- SLIDE-OVER AI SEARCH DRAWER -->
+  <aside class="ai-drawer" id="aiDrawer" aria-label="CDC AI Document Assistant">
+    <!-- Drawer Header -->
+    <div class="ai-drawer-header">
+      <div class="drawer-header-left">
+        <div class="drawer-logo-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            <path d="m9 12 2 2 4-4"/>
+          </svg>
+        </div>
+        <div class="drawer-title-group">
+          <h3>CDC Document AI</h3>
+          <p>Autonomous Clause Retrieval</p>
+        </div>
+      </div>
+      <button type="button" class="drawer-close-btn" id="aiDrawerCloseBtn" title="Close AI Assistant (Esc)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Active Document Scope Bar -->
+    <div class="ai-scope-bar">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3">
+        <circle cx="11" cy="11" r="8"/>
+        <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+        Scope: <strong>{{ doc.title[:38] }}{% if doc.title|length > 38 %}...{% endif %}</strong>
+      </span>
+    </div>
+
+    <!-- Scrollable Chat Area -->
+    <div class="ai-drawer-body" id="aiChatBody">
+      <!-- Quick Prompt Chips -->
+      <div class="quick-chips-section" id="quickChipsSection">
+        <div class="quick-chips-label">Quick Regulatory Queries</div>
+        <div class="quick-chips-row">
+          <button class="chip-btn" data-query="Summarize the core requirements and purpose of this document.">
+            📝 Summarize key rules
+          </button>
+          <button class="chip-btn" data-query="What are the specific participant compliance obligations mentioned here?">
+            ⚖️ Compliance obligations
+          </button>
+          <button class="chip-btn" data-query="What timelines, daily deadlines, or record retention periods are prescribed?">
+            ⏱️ Timelines & retention
+          </button>
+          <button class="chip-btn" data-query="What penalties, fines, or violations are specified for non-compliance?">
+            ⚠️ Penalties & breaches
+          </button>
+        </div>
+      </div>
+
+      <!-- Messages Stream -->
+      <div id="aiMessagesContainer" style="display:flex; flex-direction:column; gap:14px;">
+        <div class="chat-msg chat-msg-ai">
+          <div class="chat-bubble-ai">
+            👋 <strong>Welcome!</strong> I'm your CDC Document Intelligence Assistant. Ask me any question, clause clarification, or compliance requirement from this document.
+          </div>
+        </div>
+      </div>
+
+      <!-- Dynamic AI Searching State Banner -->
+      <div class="ai-searching-box" id="aiSearchingBox" style="display: none;">
+        <div class="searching-header">
+          <div class="searching-radar-spinner"></div>
+          <span id="searchingStateTitle">AI Searching Document...</span>
+        </div>
+        <div class="shimmer-progress-bar"></div>
+        <div class="searching-step-text" id="searchingStepText">Analyzing clauses and regulatory provisions...</div>
+      </div>
+    </div>
+
+    <!-- Input Footer -->
+    <div class="ai-drawer-footer">
+      <form id="aiChatForm" onsubmit="handleAiSubmit(event)">
+        <div class="ai-input-wrapper">
+          <textarea 
+            id="aiInput" 
+            class="ai-input-textarea" 
+            placeholder="Ask anything about this document..." 
+            rows="1"
+            required></textarea>
+          <button type="submit" class="ai-send-btn" id="aiSendBtn" title="Send Question (Enter)">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4">
+              <line x1="22" y1="2" x2="11" y2="13"/>
+              <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+            </svg>
+          </button>
+        </div>
+      </form>
+    </div>
+  </aside>
+
+  <!-- ======================================================================== -->
+  <!-- SCRIPT: COPY & DYNAMIC AI SEARCH BOT LOGIC                               -->
+  <!-- ======================================================================== -->
+  <script>
+    // Copy Text Utility
+    async function copyDocumentText() {
+      const content = document.getElementById("documentContent").innerText;
+      const btnText = document.getElementById("copyBtnText");
+      try {
+        await navigator.clipboard.writeText(content);
+        btnText.textContent = "Copied!";
+        setTimeout(() => { btnText.textContent = "Copy Text"; }, 2000);
+      } catch (e) {
+        console.error("Copy failed", e);
+      }
+    }
+
+    // AI Drawer DOM Elements
+    const aiTriggerBtn = document.getElementById("aiTriggerBtn");
+    const aiDrawer = document.getElementById("aiDrawer");
+    const aiDrawerBackdrop = document.getElementById("aiDrawerBackdrop");
+    const aiDrawerCloseBtn = document.getElementById("aiDrawerCloseBtn");
+    const aiInput = document.getElementById("aiInput");
+    const aiChatForm = document.getElementById("aiChatForm");
+    const aiSendBtn = document.getElementById("aiSendBtn");
+    const aiChatBody = document.getElementById("aiChatBody");
+    const aiMessagesContainer = document.getElementById("aiMessagesContainer");
+    const aiSearchingBox = document.getElementById("aiSearchingBox");
+    const searchingStateTitle = document.getElementById("searchingStateTitle");
+    const searchingStepText = document.getElementById("searchingStepText");
+
+    const pageDocTitle = document.getElementById("pageDocTitle")?.innerText?.trim() || "Regulatory Document";
+    const pageDocId = document.getElementById("pageDocId")?.innerText?.trim() || "";
+
+    let isSearching = false;
+    let stepInterval = null;
+
+    // Toggle Drawer Open/Close
+    function openDrawer() {
+      aiDrawer.classList.add("open");
+      aiDrawerBackdrop.classList.add("active");
+      setTimeout(() => { aiInput.focus(); }, 150);
+    }
+
+    function closeDrawer() {
+      aiDrawer.classList.remove("open");
+      aiDrawerBackdrop.classList.remove("active");
+    }
+
+    aiTriggerBtn.addEventListener("click", openDrawer);
+    aiDrawerCloseBtn.addEventListener("click", closeDrawer);
+    aiDrawerBackdrop.addEventListener("click", closeDrawer);
+
+    // Keyboard Shortcuts: Ctrl+K / Cmd+K to open, Esc to close
+    document.addEventListener("keydown", (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        if (aiDrawer.classList.contains("open")) {
+          closeDrawer();
+        } else {
+          openDrawer();
+        }
+      } else if (e.key === "Escape" && aiDrawer.classList.contains("open")) {
+        closeDrawer();
+      }
+    });
+
+    // Auto-resize Textarea
+    aiInput.addEventListener("input", () => {
+      aiInput.style.height = "auto";
+      aiInput.style.height = Math.min(aiInput.scrollHeight, 100) + "px";
+    });
+
+    // Handle Enter to submit (Shift+Enter for newline)
+    aiInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        if (!isSearching && aiInput.value.trim()) {
+          aiChatForm.dispatchEvent(new Event("submit", { cancelable: true }));
+        }
+      }
+    });
+
+    // Quick Prompt Chips Click
+    document.querySelectorAll(".chip-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        if (isSearching) return;
+        const query = btn.getAttribute("data-query");
+        if (query) {
+          aiInput.value = query;
+          openDrawer();
+          aiChatForm.dispatchEvent(new Event("submit", { cancelable: true }));
+        }
+      });
+    });
+
+    // Scroll chat to bottom
+    function scrollDrawerBottom() {
+      aiChatBody.scrollTo({
+        top: aiChatBody.scrollHeight,
+        behavior: "smooth"
+      });
+    }
+
+    // Dynamic Multi-Step Searching Animation Steps
+    const SEARCH_STEPS = [
+      "🔍 Scanning document clauses and tables...",
+      "⚡ Cross-referencing SECP & CDC regulatory frameworks...",
+      "🎯 Extracting applicable compliance requirements...",
+      "✍️ Synthesizing verified response..."
+    ];
+
+    function startSearchingAnimation() {
+      isSearching = true;
+      aiSendBtn.disabled = true;
+      aiInput.disabled = true;
+      aiSearchingBox.style.display = "flex";
+      
+      let stepIdx = 0;
+      searchingStepText.textContent = SEARCH_STEPS[0];
+      
+      stepInterval = setInterval(() => {
+        stepIdx = (stepIdx + 1) % SEARCH_STEPS.length;
+        searchingStepText.textContent = SEARCH_STEPS[stepIdx];
+      }, 700);
+
+      scrollDrawerBottom();
+    }
+
+    function stopSearchingAnimation() {
+      isSearching = false;
+      aiSendBtn.disabled = false;
+      aiInput.disabled = false;
+      aiSearchingBox.style.display = "none";
+      if (stepInterval) {
+        clearInterval(stepInterval);
+        stepInterval = null;
+      }
+    }
+
+    // Simple Markdown parser for clean response formatting
+    function formatMarkdown(text) {
+      if (!text) return "";
+      let escaped = text
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+
+      const lines = escaped.split("\n");
+      let formatted = [];
+      let inList = false;
+
+      lines.forEach(line => {
+        const trimmed = line.trim();
+        if (trimmed.startsWith("* ") || trimmed.startsWith("- ")) {
+          if (!inList) {
+            formatted.push("<ul>");
+            inList = true;
+          }
+          let content = trimmed.substring(2);
+          content = content.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
+          formatted.push(`<li>${content}</li>`);
+        } else {
+          if (inList) {
+            formatted.push("</ul>");
+            inList = false;
+          }
+          if (trimmed.length > 0) {
+            let content = trimmed.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
+            formatted.push(`<p>${content}</p>`);
+          }
+        }
+      });
+      if (inList) formatted.push("</ul>");
+      return formatted.join("");
+    }
+
+    // Append Chat Message
+    function appendChatMessage(role, content) {
+      const msgEl = document.createElement("div");
+      msgEl.className = `chat-msg chat-msg-${role}`;
+      
+      const bubbleEl = document.createElement("div");
+      bubbleEl.className = `chat-bubble-${role}`;
+      
+      if (role === "user") {
+        bubbleEl.textContent = content;
+      } else {
+        bubbleEl.innerHTML = formatMarkdown(content);
+        
+        // Add copy button to AI response
+        const actionsRow = document.createElement("div");
+        actionsRow.style.cssText = "display: flex; justify-content: flex-end; margin-top: 8px;";
+        actionsRow.innerHTML = `
+          <button type="button" style="background:transparent; border:none; color:#64748b; font-size:0.75rem; cursor:pointer; display:inline-flex; align-items:center; gap:4px; font-weight:500;" onclick="copyAnswer(this, \`${content.replace(/`/g, '\\`').replace(/\\/g, '\\\\')}\`)">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            <span>Copy</span>
+          </button>
+        `;
+        bubbleEl.appendChild(actionsRow);
+      }
+
+      msgEl.appendChild(bubbleEl);
+      aiMessagesContainer.appendChild(msgEl);
+      scrollDrawerBottom();
+    }
+
+    window.copyAnswer = async function(btn, text) {
+      try {
+        await navigator.clipboard.writeText(text);
+        const span = btn.querySelector("span");
+        if (span) {
+          span.textContent = "Copied!";
+          setTimeout(() => { span.textContent = "Copy"; }, 2000);
+        }
+      } catch (err) {
+        console.error("Failed to copy", err);
+      }
+    };
+
+    // Submit Query to /ask
+    async function handleAiSubmit(e) {
+      e.preventDefault();
+      const question = aiInput.value.trim();
+      if (!question || isSearching) return;
+
+      // 1. Add User Message
+      appendChatMessage("user", question);
+      aiInput.value = "";
+      aiInput.style.height = "auto";
+
+      // 2. Start Dynamic Searching State
+      startSearchingAnimation();
+
+      // Scope query to this specific document
+      const scopedQuery = `Regarding the document '${pageDocTitle}': ${question}`;
+
+      try {
+        const resp = await fetch("/ask", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ question: scopedQuery })
+        });
+
+        const data = await resp.json();
+        stopSearchingAnimation();
+
+        if (resp.ok && data.answer) {
+          appendChatMessage("ai", data.answer);
+        } else {
+          appendChatMessage("ai", `⚠️ ${data.error || "Unable to retrieve response from regulatory assistant. Please try again."}`);
+        }
+      } catch (err) {
+        stopSearchingAnimation();
+        appendChatMessage("ai", "⚠️ Connection error: unable to contact the local regulatory assistant server.");
+      }
+
+      aiInput.focus();
+    }
+
+    // Format archived timestamp nicely into user's local timezone
+    const archivedDateEl = document.getElementById("pageArchivedDate");
+    if (archivedDateEl) {
+      const rawDateStr = archivedDateEl.getAttribute("data-raw-date");
+      if (rawDateStr && rawDateStr.includes("T")) {
+        try {
+          const parsed = new Date(rawDateStr);
+          if (!isNaN(parsed.getTime())) {
+            const formattedLocal = parsed.toLocaleString("en-US", {
+              month: "short",
+              day: "numeric",
+              year: "numeric",
+              hour: "numeric",
+              minute: "2-digit",
+              hour12: true
+            });
+            archivedDateEl.textContent = `${formattedLocal} (Local Archive)`;
+          }
+        } catch (e) {
+          // Keep existing server-formatted date
+        }
+      }
+    }
+  </script>
+</body>
+</html>

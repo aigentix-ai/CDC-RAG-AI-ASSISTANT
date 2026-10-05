@@ -1,0 +1,772 @@
+{
+  "crawl_1790926773_3918": {
+    "crawl_id": "crawl_1790926773_3918",
+    "root_url": "https://cdcpakistan.com",
+    "base_domain": "cdcpakistan.com",
+    "max_pages": 10,
+    "delay_seconds": 1.0,
+    "auto_approve": false,
+    "check_robots": true,
+    "allowed_urls": null,
+    "stealth_mode": true,
+    "resume_existing": true,
+    "status": "stopped",
+    "pages_crawled": 0,
+    "pdfs_extracted": 0,
+    "chunks_indexed": 0,
+    "errors_count": 0,
+    "current_url": "",
+    "start_time": null,
+    "end_time": "2026-10-02T07:39:33Z",
+    "last_error": null,
+    "last_captcha_url": null,
+    "has_captcha_block": false,
+    "visited_urls": [],
+    "remaining_queue": [],
+    "logs": [
+      {
+        "timestamp": "07:39:33",
+        "level": "WARN",
+        "message": "Stop signal received; halting crawler gracefully."
+      }
+    ],
+    "category_counts": {},
+    "batch_count": 0
+  },
+  "crawl_1790926824_9033": {
+    "crawl_id": "crawl_1790926824_9033",
+    "root_url": "https://cdcpakistan.com",
+    "base_domain": "cdcpakistan.com",
+    "max_pages": 10,
+    "delay_seconds": 1.0,
+    "auto_approve": false,
+    "check_robots": true,
+    "allowed_urls": null,
+    "stealth_mode": true,
+    "resume_existing": true,
+    "status": "stopped",
+    "pages_crawled": 0,
+    "pdfs_extracted": 0,
+    "chunks_indexed": 0,
+    "errors_count": 0,
+    "current_url": "",
+    "start_time": null,
+    "end_time": "2026-10-02T09:34:18Z",
+    "last_error": null,
+    "last_captcha_url": null,
+    "has_captcha_block": false,
+    "visited_urls": [],
+    "remaining_queue": [],
+    "logs": [
+      {
+        "timestamp": "07:40:24",
+        "level": "WARN",
+        "message": "Stop signal received; halting crawler gracefully."
+      },
+      {
+        "timestamp": "09:31:52",
+        "level": "WARN",
+        "message": "Stop signal received; halting crawler gracefully."
+      },
+      {
+        "timestamp": "09:33:56",
+        "level": "INFO",
+        "message": "Crawl resumed by operator. Proceeding to fetch next targets..."
+      },
+      {
+        "timestamp": "09:33:56",
+        "level": "WARN",
+        "message": "Stop signal received; halting crawler gracefully."
+      },
+      {
+        "timestamp": "09:34:17",
+        "level": "INFO",
+        "message": "Crawl resumed by operator. Proceeding to fetch next targets..."
+      },
+      {
+        "timestamp": "09:34:17",
+        "level": "INFO",
+        "message": "Checking for sitemap at https://cdcpakistan.com/sitemap.xml..."
+      },
+      {
+        "timestamp": "09:34:18",
+        "level": "WARN",
+        "message": "Stop signal received; halting crawler gracefully."
+      },
+      {
+        "timestamp": "09:34:18",
+        "level": "INFO",
+        "message": "Initial exploration frontier size: 1 URLs"
+      },
+      {
+        "timestamp": "09:34:18",
+        "level": "WARN",
+        "message": "Crawler loop stopped cleanly."
+      },
+      {
+        "timestamp": "09:34:18",
+        "level": "INFO",
+        "message": "Crawl stopped. Pages: 0, Errors: 0"
+      }
+    ],
+    "category_counts": {},
+    "batch_count": 0
+  },
+  "crawl_1790935284_7865": {
+    "crawl_id": "crawl_1790935284_7865",
+    "root_url": "https://cdcpakistan.com",
+    "base_domain": "cdcpakistan.com",
+    "max_pages": 10,
+    "delay_seconds": 1.0,
+    "auto_approve": false,
+    "check_robots": true,
+    "allowed_urls": null,
+    "stealth_mode": true,
+    "resume_existing": true,
+    "status": "stopped",
+    "pages_crawled": 0,
+    "pdfs_extracted": 0,
+    "chunks_indexed": 0,
+    "errors_count": 0,
+    "current_url": "",
+    "start_time": null,
+    "end_time": "2026-10-02T10:01:24Z",
+    "last_error": null,
+    "last_captcha_url": null,
+    "has_captcha_block": false,
+    "visited_urls": [],
+    "remaining_queue": [],
+    "logs": [
+      {
+        "timestamp": "10:01:24",
+        "level": "WARN",
+        "message": "Stop signal received; halting crawler gracefully."
+      }
+    ],
+    "category_counts": {},
+    "batch_count": 0
+  },
+  "crawl_1790935894_4582": {
+    "crawl_id": "crawl_1790935894_4582",
+    "root_url": "https://cdcpakistan.com",
+    "base_domain": "cdcpakistan.com",
+    "max_pages": 10,
+    "delay_seconds": 1.0,
+    "auto_approve": false,
+    "check_robots": true,
+    "allowed_urls": null,
+    "stealth_mode": true,
+    "resume_existing": true,
+    "status": "stopped",
+    "pages_crawled": 0,
+    "pdfs_extracted": 0,
+    "chunks_indexed": 0,
+    "errors_count": 0,
+    "current_url": "",
+    "start_time": null,
+    "end_time": "2026-10-02T10:11:34Z",
+    "last_error": null,
+    "last_captcha_url": null,
+    "has_captcha_block": false,
+    "visited_urls": [],
+    "remaining_queue": [],
+    "logs": [
+      {
+        "timestamp": "10:11:34",
+        "level": "WARN",
+        "message": "Stop signal received; halting crawler gracefully."
+      }
+    ],
+    "category_counts": {},
+    "batch_count": 0
+  },
+  "crawl_1790936717_5468": {
+    "crawl_id": "crawl_1790936717_5468",
+    "root_url": "https://cdcpakistan.com",
+    "base_domain": "cdcpakistan.com",
+    "max_pages": 10,
+    "delay_seconds": 1.0,
+    "auto_approve": false,
+    "check_robots": true,
+    "allowed_urls": null,
+    "stealth_mode": true,
+    "resume_existing": true,
+    "status": "stopped",
+    "pages_crawled": 0,
+    "pdfs_extracted": 0,
+    "chunks_indexed": 0,
+    "errors_count": 0,
+    "current_url": "",
+    "start_time": null,
+    "end_time": "2026-10-02T10:25:17Z",
+    "last_error": null,
+    "last_captcha_url": null,
+    "has_captcha_block": false,
+    "visited_urls": [],
+    "remaining_queue": [],
+    "logs": [
+      {
+        "timestamp": "10:25:17",
+        "level": "WARN",
+        "message": "Stop signal received; halting crawler gracefully."
+      }
+    ],
+    "category_counts": {},
+    "batch_count": 0
+  },
+  "crawl_1790937118_3434": {
+    "crawl_id": "crawl_1790937118_3434",
+    "root_url": "https://cdcpakistan.com",
+    "base_domain": "cdcpakistan.com",
+    "max_pages": 10,
+    "delay_seconds": 1.0,
+    "auto_approve": false,
+    "check_robots": true,
+    "allowed_urls": null,
+    "stealth_mode": true,
+    "resume_existing": true,
+    "status": "stopped",
+    "pages_crawled": 0,
+    "pdfs_extracted": 0,
+    "chunks_indexed": 0,
+    "errors_count": 0,
+    "current_url": "",
+    "start_time": null,
+    "end_time": "2026-10-02T10:31:58Z",
+    "last_error": null,
+    "last_captcha_url": null,
+    "has_captcha_block": false,
+    "visited_urls": [],
+    "remaining_queue": [],
+    "logs": [
+      {
+        "timestamp": "10:31:58",
+        "level": "WARN",
+        "message": "Stop signal received; halting crawler gracefully."
+      }
+    ],
+    "category_counts": {},
+    "batch_count": 0
+  },
+  "crawl_1790937439_3869": {
+    "crawl_id": "crawl_1790937439_3869",
+    "root_url": "https://cdcpakistan.com",
+    "base_domain": "cdcpakistan.com",
+    "max_pages": 10,
+    "delay_seconds": 1.0,
+    "auto_approve": false,
+    "check_robots": true,
+    "allowed_urls": null,
+    "stealth_mode": true,
+    "resume_existing": true,
+    "status": "stopped",
+    "pages_crawled": 0,
+    "pdfs_extracted": 0,
+    "chunks_indexed": 0,
+    "errors_count": 0,
+    "current_url": "",
+    "start_time": null,
+    "end_time": "2026-10-02T10:37:19Z",
+    "last_error": null,
+    "last_captcha_url": null,
+    "has_captcha_block": false,
+    "visited_urls": [],
+    "remaining_queue": [],
+    "logs": [
+      {
+        "timestamp": "10:37:19",
+        "level": "WARN",
+        "message": "Stop signal received; halting crawler gracefully."
+      }
+    ],
+    "category_counts": {},
+    "batch_count": 0
+  },
+  "crawl_1790940223_1587": {
+    "crawl_id": "crawl_1790940223_1587",
+    "root_url": "https://cdcpakistan.com",
+    "base_domain": "cdcpakistan.com",
+    "max_pages": 10,
+    "delay_seconds": 1.0,
+    "auto_approve": false,
+    "check_robots": true,
+    "allowed_urls": null,
+    "stealth_mode": true,
+    "resume_existing": true,
+    "status": "stopped",
+    "pages_crawled": 0,
+    "pdfs_extracted": 0,
+    "chunks_indexed": 0,
+    "errors_count": 0,
+    "current_url": "",
+    "start_time": null,
+    "end_time": "2026-10-02T11:23:43Z",
+    "last_error": null,
+    "last_captcha_url": null,
+    "has_captcha_block": false,
+    "visited_urls": [],
+    "remaining_queue": [],
+    "logs": [
+      {
+        "timestamp": "11:23:43",
+        "level": "WARN",
+        "message": "Stop signal received; halting crawler gracefully."
+      }
+    ],
+    "category_counts": {},
+    "batch_count": 0
+  },
+  "crawl_1790940331_9916": {
+    "crawl_id": "crawl_1790940331_9916",
+    "root_url": "https://cdcpakistan.com",
+    "base_domain": "cdcpakistan.com",
+    "max_pages": 10,
+    "delay_seconds": 1.0,
+    "auto_approve": false,
+    "check_robots": true,
+    "allowed_urls": null,
+    "stealth_mode": true,
+    "resume_existing": true,
+    "status": "stopped",
+    "pages_crawled": 0,
+    "pdfs_extracted": 0,
+    "chunks_indexed": 0,
+    "errors_count": 0,
+    "current_url": "",
+    "start_time": null,
+    "end_time": "2026-10-02T11:25:31Z",
+    "last_error": null,
+    "last_captcha_url": null,
+    "has_captcha_block": false,
+    "visited_urls": [],
+    "remaining_queue": [],
+    "logs": [
+      {
+        "timestamp": "11:25:31",
+        "level": "WARN",
+        "message": "Stop signal received; halting crawler gracefully."
+      }
+    ],
+    "category_counts": {},
+    "batch_count": 0
+  },
+  "crawl_1790941342_4285": {
+    "crawl_id": "crawl_1790941342_4285",
+    "root_url": "https://cdcaccess.com.pk/",
+    "base_domain": "cdcaccess.com.pk",
+    "max_pages": 50,
+    "delay_seconds": 1.5,
+    "auto_approve": false,
+    "check_robots": true,
+    "allowed_urls": null,
+    "stealth_mode": true,
+    "resume_existing": true,
+    "status": "completed",
+    "pages_crawled": 1,
+    "pdfs_extracted": 0,
+    "chunks_indexed": 1,
+    "errors_count": 0,
+    "current_url": "https://cdcaccess.com.pk/",
+    "start_time": "2026-10-02T11:42:22Z",
+    "end_time": "2026-10-05T06:10:51Z",
+    "last_error": null,
+    "last_captcha_url": null,
+    "has_captcha_block": false,
+    "visited_urls": [
+      "https://cdcaccess.com.pk/"
+    ],
+    "remaining_queue": [],
+    "logs": [
+      {
+        "timestamp": "11:42:22",
+        "level": "INFO",
+        "message": "Crawl job started for https://cdcaccess.com.pk/ (Domain: cdcaccess.com.pk, Max: 50)"
+      },
+      {
+        "timestamp": "11:42:23",
+        "level": "INFO",
+        "message": "Checking for sitemap at https://cdcaccess.com.pk/sitemap.xml..."
+      },
+      {
+        "timestamp": "11:42:23",
+        "level": "INFO",
+        "message": "Checking for sitemap at https://cdcaccess.com.pk/sitemap_index.xml..."
+      },
+      {
+        "timestamp": "11:42:24",
+        "level": "INFO",
+        "message": "Checking for sitemap at https://cdcaccess.com.pk/wp-sitemap.xml..."
+      },
+      {
+        "timestamp": "11:42:25",
+        "level": "INFO",
+        "message": "Initial exploration frontier size: 1 URLs"
+      },
+      {
+        "timestamp": "11:42:25",
+        "level": "INFO",
+        "message": "Simulating natural human reading interval (1.7s)..."
+      },
+      {
+        "timestamp": "11:42:26",
+        "level": "INFO",
+        "message": "Fetching [HTML/STEALTH-HUMAN] (1/50): https://cdcaccess.com.pk/"
+      },
+      {
+        "timestamp": "11:42:26",
+        "level": "INFO",
+        "message": "[STEALTH-BROWSER] Spawning native browser engine (Port 9614)..."
+      },
+      {
+        "timestamp": "11:42:30",
+        "level": "INFO",
+        "message": "[STEALTH-BROWSER] Simulating human scrolling (3 smooth steps with reading pauses)..."
+      },
+      {
+        "timestamp": "11:42:32",
+        "level": "INFO",
+        "message": "[STEALTH-BROWSER] Simulated human reverse scroll (checking previous section)."
+      },
+      {
+        "timestamp": "11:42:32",
+        "level": "INFO",
+        "message": "[STEALTH-BROWSER] Checking page for regulatory disclaimers, cookie banners, or collapsed accordions..."
+      },
+      {
+        "timestamp": "11:42:33",
+        "level": "INFO",
+        "message": "[STEALTH-BROWSER] No blocking modals detected; document body is fully accessible."
+      },
+      {
+        "timestamp": "11:42:33",
+        "level": "INFO",
+        "message": "[STEALTH-BROWSER] Extracting dynamic post-interaction DOM..."
+      },
+      {
+        "timestamp": "11:42:34",
+        "level": "SUCCESS",
+        "message": "[STEALTH-BROWSER] Human browsing simulation succeeded (448351 bytes captured)."
+      },
+      {
+        "timestamp": "11:42:35",
+        "level": "INFO",
+        "message": "Extracted HTML 'Welcome to CDC Access' with 12 new links"
+      },
+      {
+        "timestamp": "11:42:35",
+        "level": "INFO",
+        "message": "Staged 'Welcome to CDC Access' (1 chunks) into Review Queue for approval."
+      }
+    ],
+    "category_counts": {
+      "Welcome to CDC Access": 1
+    },
+    "batch_count": 0
+  },
+  "crawl_1791179594_8921": {
+    "crawl_id": "crawl_1791179594_8921",
+    "root_url": "https://cdcpakistan.com",
+    "base_domain": "cdcpakistan.com",
+    "max_pages": 10,
+    "delay_seconds": 1.0,
+    "auto_approve": false,
+    "check_robots": true,
+    "allowed_urls": null,
+    "stealth_mode": true,
+    "resume_existing": true,
+    "status": "stopped",
+    "pages_crawled": 0,
+    "pdfs_extracted": 0,
+    "chunks_indexed": 0,
+    "errors_count": 0,
+    "current_url": "",
+    "start_time": null,
+    "end_time": "2026-10-05T05:53:14Z",
+    "last_error": null,
+    "last_captcha_url": null,
+    "has_captcha_block": false,
+    "visited_urls": [],
+    "remaining_queue": [],
+    "logs": [
+      {
+        "timestamp": "05:53:14",
+        "level": "WARN",
+        "message": "Stop signal received; halting crawler gracefully."
+      }
+    ],
+    "category_counts": {},
+    "batch_count": 0
+  },
+  "crawl_1791180219_3610": {
+    "crawl_id": "crawl_1791180219_3610",
+    "root_url": "https://cdcpakistan.com",
+    "base_domain": "cdcpakistan.com",
+    "max_pages": 10,
+    "delay_seconds": 1.0,
+    "auto_approve": false,
+    "check_robots": true,
+    "allowed_urls": null,
+    "stealth_mode": true,
+    "resume_existing": true,
+    "status": "stopped",
+    "pages_crawled": 0,
+    "pdfs_extracted": 0,
+    "chunks_indexed": 0,
+    "errors_count": 0,
+    "current_url": "",
+    "start_time": null,
+    "end_time": "2026-10-05T06:03:39Z",
+    "last_error": null,
+    "last_captcha_url": null,
+    "has_captcha_block": false,
+    "visited_urls": [],
+    "remaining_queue": [],
+    "logs": [
+      {
+        "timestamp": "06:03:39",
+        "level": "WARN",
+        "message": "Stop signal received; halting crawler gracefully."
+      }
+    ],
+    "category_counts": {},
+    "batch_count": 0
+  },
+  "crawl_1791180653_7776": {
+    "crawl_id": "crawl_1791180653_7776",
+    "root_url": "https://cdcpakistan.com",
+    "base_domain": "cdcpakistan.com",
+    "max_pages": 10,
+    "delay_seconds": 1.0,
+    "auto_approve": false,
+    "check_robots": true,
+    "allowed_urls": null,
+    "stealth_mode": true,
+    "resume_existing": true,
+    "status": "stopped",
+    "pages_crawled": 0,
+    "pdfs_extracted": 0,
+    "chunks_indexed": 0,
+    "errors_count": 0,
+    "current_url": "",
+    "start_time": null,
+    "end_time": "2026-10-05T06:10:53Z",
+    "last_error": null,
+    "last_captcha_url": null,
+    "has_captcha_block": false,
+    "visited_urls": [],
+    "remaining_queue": [],
+    "logs": [
+      {
+        "timestamp": "06:10:53",
+        "level": "WARN",
+        "message": "Stop signal received; halting crawler gracefully."
+      }
+    ],
+    "category_counts": {},
+    "batch_count": 0
+  },
+  "crawl_1791183957_4113": {
+    "crawl_id": "crawl_1791183957_4113",
+    "root_url": "https://cdcpakistan.com",
+    "base_domain": "cdcpakistan.com",
+    "max_pages": 10,
+    "delay_seconds": 1.0,
+    "auto_approve": false,
+    "check_robots": true,
+    "allowed_urls": null,
+    "stealth_mode": true,
+    "resume_existing": true,
+    "status": "stopped",
+    "pages_crawled": 0,
+    "pdfs_extracted": 0,
+    "chunks_indexed": 0,
+    "errors_count": 0,
+    "current_url": "",
+    "start_time": null,
+    "end_time": "2026-10-05T07:05:57Z",
+    "last_error": null,
+    "last_captcha_url": null,
+    "has_captcha_block": false,
+    "visited_urls": [],
+    "remaining_queue": [],
+    "logs": [
+      {
+        "timestamp": "07:05:57",
+        "level": "WARN",
+        "message": "Stop signal received; halting crawler gracefully."
+      }
+    ],
+    "category_counts": {},
+    "batch_count": 0
+  },
+  "crawl_1791193591_2157": {
+    "crawl_id": "crawl_1791193591_2157",
+    "root_url": "https://cdcpakistan.com",
+    "base_domain": "cdcpakistan.com",
+    "max_pages": 50,
+    "delay_seconds": 2.0,
+    "auto_approve": false,
+    "check_robots": true,
+    "allowed_urls": null,
+    "stealth_mode": true,
+    "resume_existing": true,
+    "status": "completed",
+    "pages_crawled": 0,
+    "pdfs_extracted": 0,
+    "chunks_indexed": 0,
+    "errors_count": 1,
+    "current_url": "https://cdcpakistan.com",
+    "start_time": "2026-10-05T09:46:31Z",
+    "end_time": "2026-10-05T09:46:48Z",
+    "last_error": "Cloudflare Turnstile challenge active on https://cdcpakistan.com",
+    "last_captcha_url": null,
+    "has_captcha_block": false,
+    "visited_urls": [
+      "https://cdcpakistan.com"
+    ],
+    "remaining_queue": [],
+    "logs": [
+      {
+        "timestamp": "09:46:31",
+        "level": "INFO",
+        "message": "Crawl job started for https://cdcpakistan.com (Domain: cdcpakistan.com, Max: 50)"
+      },
+      {
+        "timestamp": "09:46:32",
+        "level": "INFO",
+        "message": "Checking for sitemap at https://cdcpakistan.com/sitemap.xml..."
+      },
+      {
+        "timestamp": "09:46:33",
+        "level": "INFO",
+        "message": "Checking for sitemap at https://cdcpakistan.com/sitemap_index.xml..."
+      },
+      {
+        "timestamp": "09:46:34",
+        "level": "INFO",
+        "message": "Checking for sitemap at https://cdcpakistan.com/wp-sitemap.xml..."
+      },
+      {
+        "timestamp": "09:46:35",
+        "level": "INFO",
+        "message": "Initial exploration frontier size: 1 URLs"
+      },
+      {
+        "timestamp": "09:46:35",
+        "level": "INFO",
+        "message": "Simulating natural human reading interval (2.2s)..."
+      },
+      {
+        "timestamp": "09:46:37",
+        "level": "INFO",
+        "message": "Fetching [HTML/STEALTH-HUMAN] (1/50): https://cdcpakistan.com"
+      },
+      {
+        "timestamp": "09:46:37",
+        "level": "INFO",
+        "message": "[STEALTH-BROWSER] Spawning native browser engine (Port 9880)..."
+      },
+      {
+        "timestamp": "09:46:40",
+        "level": "INFO",
+        "message": "[STEALTH-BROWSER] Simulating human scrolling (4 smooth steps with reading pauses)..."
+      },
+      {
+        "timestamp": "09:46:42",
+        "level": "INFO",
+        "message": "[STEALTH-BROWSER] Simulated human reverse scroll (checking previous section)."
+      },
+      {
+        "timestamp": "09:46:42",
+        "level": "INFO",
+        "message": "[STEALTH-BROWSER] Checking page for regulatory disclaimers, cookie banners, or collapsed accordions..."
+      },
+      {
+        "timestamp": "09:46:42",
+        "level": "WARN",
+        "message": "[STEALTH-BROWSER] Cloudflare Turnstile challenge detected on https://cdcpakistan.com. Polling up to 5s for auto-verification/redirection..."
+      },
+      {
+        "timestamp": "09:46:47",
+        "level": "WARN",
+        "message": "[STEALTH-BROWSER] Cloudflare challenge active on https://cdcpakistan.com. Refusing to extract challenge interstitial screen."
+      },
+      {
+        "timestamp": "09:46:48",
+        "level": "WARN",
+        "message": "[CAPTCHA-DETECTED] Cloudflare Turnstile challenge active on https://cdcpakistan.com. Click 'Open Page in Browser' to complete verification."
+      },
+      {
+        "timestamp": "09:46:48",
+        "level": "ERROR",
+        "message": "Failed to process https://cdcpakistan.com: Cloudflare Turnstile challenge active on https://cdcpakistan.com"
+      },
+      {
+        "timestamp": "09:46:48",
+        "level": "ERROR",
+        "message": "Crawl failed. 0 pages indexed, 1 errors encountered (Target server WAF / anti-bot block)."
+      },
+      {
+        "timestamp": "09:47:27",
+        "level": "INFO",
+        "message": "Crawl resumed by operator. Proceeding to fetch next targets..."
+      },
+      {
+        "timestamp": "09:47:27",
+        "level": "INFO",
+        "message": "Checking for sitemap at https://cdcpakistan.com/sitemap.xml..."
+      },
+      {
+        "timestamp": "09:47:28",
+        "level": "INFO",
+        "message": "Checking for sitemap at https://cdcpakistan.com/sitemap_index.xml..."
+      },
+      {
+        "timestamp": "09:47:29",
+        "level": "INFO",
+        "message": "Checking for sitemap at https://cdcpakistan.com/wp-sitemap.xml..."
+      },
+      {
+        "timestamp": "09:47:30",
+        "level": "INFO",
+        "message": "Initial exploration frontier size: 1 URLs"
+      }
+    ],
+    "category_counts": {},
+    "batch_count": 0
+  },
+  "crawl_1791194133_8479": {
+    "crawl_id": "crawl_1791194133_8479",
+    "root_url": "https://cdcpakistan.com",
+    "base_domain": "cdcpakistan.com",
+    "max_pages": 10,
+    "delay_seconds": 1.0,
+    "auto_approve": false,
+    "check_robots": true,
+    "allowed_urls": null,
+    "stealth_mode": true,
+    "resume_existing": true,
+    "status": "stopped",
+    "pages_crawled": 0,
+    "pdfs_extracted": 0,
+    "chunks_indexed": 0,
+    "errors_count": 0,
+    "current_url": "",
+    "start_time": null,
+    "end_time": "2026-10-05T09:55:33Z",
+    "last_error": null,
+    "last_captcha_url": null,
+    "has_captcha_block": false,
+    "visited_urls": [],
+    "remaining_queue": [],
+    "logs": [
+      {
+        "timestamp": "09:55:33",
+        "level": "WARN",
+        "message": "Stop signal received; halting crawler gracefully."
+      }
+    ],
+    "category_counts": {},
+    "batch_count": 0
+  }
+}

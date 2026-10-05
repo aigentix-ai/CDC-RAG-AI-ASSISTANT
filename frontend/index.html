@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CDC Regulatory Assistant — Phase 1 Demo</title>
+  
+  <!-- Premium Fonts: Plus Jakarta Sans & Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="page-background-mesh" aria-hidden="true"></div>
+
+  <div class="app-container">
+    <!-- Header Area -->
+    <header class="chat-header">
+      <div class="header-branding">
+        <div class="header-logo-badge" aria-hidden="true">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            <path d="m9 12 2 2 4-4"/>
+          </svg>
+          <span class="logo-status-ping" title="Knowledge Base Active"></span>
+        </div>
+        <div class="header-titles">
+          <div class="header-title-row">
+            <h1 class="header-title">CDC Regulatory Assistant</h1>
+            <span class="header-status-pill">
+              <span class="status-dot"></span>
+              <span>SECP &amp; CDC Verified</span>
+            </span>
+          </div>
+          <p class="header-subtitle">Central Depository Company of Pakistan • Regulatory Compliance Assistant</p>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <a href="/admin" class="header-link-btn admin-link" target="_blank" rel="noopener noreferrer" title="Open Admin Ingestion & Review Dashboard">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+          </svg>
+          <span>Admin Console</span>
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="external-icon" aria-hidden="true">
+            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+            <polyline points="15 3 21 3 21 9"/>
+            <line x1="10" y1="14" x2="21" y2="3"/>
+          </svg>
+        </a>
+
+        <button type="button" id="clearSessionBtn" class="clear-session-btn" title="Reset chat history and start a new session" aria-label="Clear session history">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="reset-icon" aria-hidden="true">
+            <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/>
+            <path d="M21 3v5h-5"/>
+            <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/>
+            <path d="M8 16H3v5"/>
+          </svg>
+          <span>New Session</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Chat Messages Area -->
+    <main class="chat-main" id="chatMain" aria-live="polite" aria-label="Conversation with CDC Regulatory Assistant">
+      <div class="chat-messages" id="chatMessages">
+        <!-- Initial Welcome / Regulatory Notice -->
+        <div class="message assistant-message welcome-card-wrapper">
+          <div class="message-avatar welcome-avatar" aria-hidden="true">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+              <path d="m9 12 2 2 4-4"/>
+            </svg>
+          </div>
+          <div class="message-content">
+            <div class="welcome-card">
+              <h2 class="welcome-heading">Welcome to the CDC Regulatory Assistant</h2>
+              <p class="welcome-subtext">Ask any question about SECP circulars and CDC operating regulations.</p>
+            </div>
+
+            <!-- Suggested starter questions -->
+            <div class="starter-prompts">
+              <div class="starter-header">
+                <span class="starter-label">Sample Questions</span>
+                <span class="starter-hint">Click a question below to start:</span>
+              </div>
+              <div class="prompt-chips">
+                <button type="button" class="prompt-chip" data-prompt="What are the mandatory reconciliation rules and penalties under SECP Circular 12 of 2025?">
+                  <div class="chip-icon">📋</div>
+                  <div class="chip-body">
+                    <span class="chip-category">Circulars &amp; Directives</span>
+                    <strong class="chip-title">Reconciliation Rules &amp; Penalties</strong>
+                    <span class="chip-desc">SECP Circular 12 • 2h market close rules &amp; PKR 5M penalty</span>
+                  </div>
+                  <div class="chip-arrow">↗</div>
+                </button>
+
+                <button type="button" class="prompt-chip" data-prompt="What are the KYC, PEP, and 10-year record retention requirements under SECP AML/CFT guidelines?">
+                  <div class="chip-icon">🛡️</div>
+                  <div class="chip-body">
+                    <span class="chip-category">AML/CFT Compliance</span>
+                    <strong class="chip-title">AML/CFT, PEPs &amp; 10-Year Retention</strong>
+                    <span class="chip-desc">Customer due diligence, Politically Exposed Persons &amp; record retention</span>
+                  </div>
+                  <div class="chip-arrow">↗</div>
+                </button>
+
+                <button type="button" class="prompt-chip" data-prompt="What are CDC's official duties as Trustee for Mutual Funds and VPS schemes?">
+                  <div class="chip-icon">🏛️</div>
+                  <div class="chip-body">
+                    <span class="chip-category">Trustee &amp; Custodial</span>
+                    <strong class="chip-title">Mutual Fund &amp; VPS Trustee Duties</strong>
+                    <span class="chip-desc">Custodial role, asset segregation &amp; SECP regulatory filings</span>
+                  </div>
+                  <div class="chip-arrow">↗</div>
+                </button>
+
+                <button type="button" class="prompt-chip" data-prompt="How does the Centralized eIPO System (CES) and eDividend Repository work under CDC eServices?">
+                  <div class="chip-icon">🌐</div>
+                  <div class="chip-body">
+                    <span class="chip-category">eServices &amp; Portals</span>
+                    <strong class="chip-title">eIPO &amp; eDividend Digital Ecosystem</strong>
+                    <span class="chip-desc">Centralized eIPO System (CES), digital subscriptions &amp; dividend credit</span>
+                  </div>
+                  <div class="chip-arrow">↗</div>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Chat Input Section -->
+    <footer class="chat-footer">
+      <div class="input-dock-container">
+        <form id="chatForm" class="chat-input-form" autocomplete="off">
+          <div class="input-wrapper">
+            <textarea
+              id="questionInput"
+              name="question"
+              rows="1"
+              placeholder="Type your regulatory question here (e.g. Reconciliation rules under Circular 12)..."
+              aria-label="Type your regulatory question here"
+              required
+            ></textarea>
+          </div>
+          <button type="submit" id="sendBtn" class="send-button" aria-label="Send question">
+            <span class="send-text">Send</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="send-icon" aria-hidden="true">
+              <line x1="22" y1="2" x2="11" y2="13"/>
+              <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+            </svg>
+          </button>
+        </form>
+
+        <div class="input-footer-bar">
+          <div class="keyboard-hints">
+            <span class="key-badge">Enter ↵</span> to send &bull; <span class="key-badge">Shift + Enter</span> for new line
+          </div>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

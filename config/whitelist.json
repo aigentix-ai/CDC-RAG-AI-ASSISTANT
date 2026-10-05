@@ -1,0 +1,27 @@
+[
+  {
+    "url": "https://www.cdcpakistan.com/",
+    "type": "html",
+    "label": "CDC Pakistan Official Homepage"
+  },
+  {
+    "url": "https://www.cdcpakistan.com/about-us/overview/",
+    "type": "html",
+    "label": "CDC Corporate Overview"
+  },
+  {
+    "url": "https://www.cdcpakistan.com/circular-notices/",
+    "type": "html",
+    "label": "CDC Circulars & Notices"
+  },
+  {
+    "url": "https://www.cdcpakistan.com/assets/uploads/2026/04/Procedures-for-Direct-Transactions.pdf",
+    "type": "pdf",
+    "label": "CDC Procedures for Direct Transactions"
+  },
+  {
+    "url": "https://pdfobject.com/pdf/sample.pdf",
+    "type": "pdf",
+    "label": "Sample Regulatory PDF"
+  }
+]

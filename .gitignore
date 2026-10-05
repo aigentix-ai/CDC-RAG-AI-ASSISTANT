@@ -1,0 +1,52 @@
+# ==============================================================================
+# Git Ignore Configuration - CDC Regulatory AI Assistant
+# ==============================================================================
+
+# Environment & API Key Secrets (MANDATORY - NEVER COMMIT)
+.env
+.env.*
+!.env.example
+
+# Python Virtual Environments
+.venv/
+backend/.venv/
+venv/
+env/
+ENV/
+*.venv/
+.agents/
+
+# Python Cache & Bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+.coverage
+htmlcov/
+.uv_cache/
+
+# Database files (preserve pre-seeded chroma store)
+*.sqlite3
+!vectordb/chroma_store/chroma.sqlite3
+*.sqlite3-journal
+*.sqlite3-wal
+*.sqlite3-shm
+
+# Transient / Test Uploads & Scraping Dumps
+data/uploads/*evil_name*
+data/uploads/*junk_doc*
+data/uploads/*secp_directive*
+scratch/
+test_chrome.html
+*.log
+
+# OS & Editor Specific
+.DS_Store
+Thumbs.db
+ehthumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
