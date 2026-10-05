@@ -4,17 +4,20 @@
 // ============================================================================
 const API_BASE_URL = "http://localhost:5000/ask";
 
-// Dynamic API resolution for relative deployments and Cloudflare / remote hosting
+// Dynamic API resolution for autonomous Cloudflare Pages and local environments
 function getResolvedApiUrl() {
   if (typeof window !== "undefined") {
-    // 1. Explicit window configuration (e.g., config.js)
-    if (window.CDC_API_URL) return window.CDC_API_URL;
-    // 2. User-configured backend in localStorage
+    // Purge any stale localhost or tunnel keys in production/hosted environments
     try {
-      const stored = localStorage.getItem("cdc_api_url");
-      if (stored) return stored.endsWith("/ask") ? stored : `${stored.replace(/\/$/, "")}/ask`;
+      if (window.location && window.location.hostname !== "localhost" && window.location.hostname !== "127.0.0.1") {
+        localStorage.removeItem("cdc_api_url");
+        localStorage.removeItem("cdc_backend_url");
+      }
     } catch (e) {}
-    // 3. Same-origin deployment (e.g., Cloudflare Pages with proxy or Flask-hosted frontend)
+
+    // 1. Explicit window override (e.g. config.js)
+    if (window.CDC_API_URL) return window.CDC_API_URL;
+    // 2. Same-origin deployment (Cloudflare Pages edge function /ask or Flask /ask)
     if (window.location && window.location.origin && window.location.origin.startsWith("http")) {
       return `${window.location.origin}/ask`;
     }
@@ -649,76 +652,6 @@ document.addEventListener("DOMContentLoaded", () => {
       questionInput.focus();
     }
   });
-
-  // --------------------------------------------------------------------------
-  // Server Settings Modal Handler
-  // --------------------------------------------------------------------------
-  const serverSettingsBtn = document.getElementById("serverSettingsBtn");
-  const settingsModal = document.getElementById("settingsModal");
-  const closeSettingsBtn = document.getElementById("closeSettingsBtn");
-  const backendUrlInput = document.getElementById("backendUrlInput");
-  const saveBackendBtn = document.getElementById("saveBackendBtn");
-  const resetBackendBtn = document.getElementById("resetBackendBtn");
-  const settingsStatusMsg = document.getElementById("settingsStatusMsg");
-
-  if (serverSettingsBtn && settingsModal) {
-    serverSettingsBtn.addEventListener("click", () => {
-      const current = localStorage.getItem("cdc_backend_url") || localStorage.getItem("cdc_api_url") || window.location.origin;
-      if (backendUrlInput) {
-        backendUrlInput.value = current.replace(/\/ask\/?$/, "");
-      }
-      if (settingsStatusMsg) settingsStatusMsg.innerHTML = "";
-      settingsModal.showModal();
-    });
-
-    closeSettingsBtn?.addEventListener("click", () => {
-      settingsModal.close();
-    });
-
-    saveBackendBtn?.addEventListener("click", async () => {
-      const val = (backendUrlInput?.value || "").trim().replace(/\/$/, "");
-      if (!val) {
-        localStorage.removeItem("cdc_backend_url");
-        localStorage.removeItem("cdc_api_url");
-        RESOLVED_API_URL = getResolvedApiUrl();
-        if (settingsStatusMsg) settingsStatusMsg.innerHTML = "<span style='color:#10b981;'>Reset to default same-origin.</span>";
-        setTimeout(() => settingsModal.close(), 800);
-        return;
-      }
-      if (settingsStatusMsg) settingsStatusMsg.innerHTML = "<span style='color:#38bdf8;'>Testing connection...</span>";
-      try {
-        const ping = await fetch(`${val}/health`, { method: "GET" });
-        if (ping.ok) {
-          localStorage.setItem("cdc_backend_url", val);
-          localStorage.setItem("cdc_api_url", `${val}/ask`);
-          RESOLVED_API_URL = getResolvedApiUrl();
-          if (settingsStatusMsg) settingsStatusMsg.innerHTML = "<span style='color:#10b981;'>Connected successfully! (200 OK)</span>";
-          setTimeout(() => settingsModal.close(), 1000);
-        } else {
-          localStorage.setItem("cdc_backend_url", val);
-          localStorage.setItem("cdc_api_url", `${val}/ask`);
-          RESOLVED_API_URL = getResolvedApiUrl();
-          if (settingsStatusMsg) settingsStatusMsg.innerHTML = "<span style='color:#f59e0b;'>Saved! Endpoint configured.</span>";
-          setTimeout(() => settingsModal.close(), 1200);
-        }
-      } catch (e) {
-        localStorage.setItem("cdc_backend_url", val);
-        localStorage.setItem("cdc_api_url", `${val}/ask`);
-        RESOLVED_API_URL = getResolvedApiUrl();
-        if (settingsStatusMsg) settingsStatusMsg.innerHTML = "<span style='color:#38bdf8;'>Saved URL! (Will connect when server is online)</span>";
-        setTimeout(() => settingsModal.close(), 1200);
-      }
-    });
-
-    resetBackendBtn?.addEventListener("click", () => {
-      localStorage.removeItem("cdc_backend_url");
-      localStorage.removeItem("cdc_api_url");
-      RESOLVED_API_URL = getResolvedApiUrl();
-      if (backendUrlInput) backendUrlInput.value = window.location.origin;
-      if (settingsStatusMsg) settingsStatusMsg.innerHTML = "<span style='color:#10b981;'>Cleared custom backend.</span>";
-      setTimeout(() => settingsModal.close(), 800);
-    });
-  }
 
   // Initial focus on input
   questionInput.focus();
