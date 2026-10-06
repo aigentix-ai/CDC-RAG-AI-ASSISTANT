@@ -4,11 +4,42 @@
 // Runs 100% on Cloudflare's Edge Network
 // ==============================================================================
 
-import KNOWLEDGE_BASE from "../../knowledge_base.json";
+// Dynamic Knowledge Base Loader from Static Assets (bypasses 1MB Cloudflare Worker size limit)
+let CACHED_KNOWLEDGE_BASE = null;
+
+async function getKnowledgeBase(request, env) {
+  if (CACHED_KNOWLEDGE_BASE && CACHED_KNOWLEDGE_BASE.length > 0) {
+    return CACHED_KNOWLEDGE_BASE;
+  }
+  const urlsToTry = [
+    new URL("/knowledge_base.json", request.url),
+    new URL("/frontend/knowledge_base.json", request.url)
+  ];
+  for (const u of urlsToTry) {
+    try {
+      if (env && env.ASSETS) {
+        const res = await env.ASSETS.fetch(u);
+        if (res.ok) {
+          CACHED_KNOWLEDGE_BASE = await res.json();
+          return CACHED_KNOWLEDGE_BASE;
+        }
+      }
+    } catch (_) {}
+    try {
+      const res = await fetch(u);
+      if (res.ok) {
+        CACHED_KNOWLEDGE_BASE = await res.json();
+        return CACHED_KNOWLEDGE_BASE;
+      }
+    } catch (_) {}
+  }
+  return [];
+}
 
 export async function onRequest(context) {
   const { request, env, params } = context;
   const path = Array.isArray(params.path) ? params.path.join("/") : (params.path || "");
+  const KNOWLEDGE_BASE = await getKnowledgeBase(request, env);
 
   // CORS Headers
   const corsHeaders = {

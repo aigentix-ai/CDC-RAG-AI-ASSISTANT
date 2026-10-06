@@ -4,7 +4,37 @@
 // Executes 100% on Cloudflare's Edge Network (Zero Local Machine Dependency)
 // ==============================================================================
 
-import KNOWLEDGE_BASE from "./knowledge_base.json";
+// Dynamic Knowledge Base Loader from Static Assets (bypasses 1MB Cloudflare Worker size limit)
+let CACHED_KNOWLEDGE_BASE = null;
+
+async function getKnowledgeBase(request, env) {
+  if (CACHED_KNOWLEDGE_BASE && CACHED_KNOWLEDGE_BASE.length > 0) {
+    return CACHED_KNOWLEDGE_BASE;
+  }
+  const urlsToTry = [
+    new URL("/knowledge_base.json", request.url),
+    new URL("/frontend/knowledge_base.json", request.url)
+  ];
+  for (const u of urlsToTry) {
+    try {
+      if (env && env.ASSETS) {
+        const res = await env.ASSETS.fetch(u);
+        if (res.ok) {
+          CACHED_KNOWLEDGE_BASE = await res.json();
+          return CACHED_KNOWLEDGE_BASE;
+        }
+      }
+    } catch (_) {}
+    try {
+      const res = await fetch(u);
+      if (res.ok) {
+        CACHED_KNOWLEDGE_BASE = await res.json();
+        return CACHED_KNOWLEDGE_BASE;
+      }
+    } catch (_) {}
+  }
+  return [];
+}
 
 // Obfuscated fallback key for seamless zero-setup live edge execution
 const DEFAULT_B64_KEY = "QVEuQWI4Uk42Smk4Rjd1RHllSmw5RXBXVDNNVW5BZ3QwTF9yOVJiVUcyeElKVVRRaHRMTWc=";
@@ -27,7 +57,7 @@ const STOPWORDS = new Set([
   "wouldn't", "you", "you'd", "you'll", "you're", "you've", "your", "yours", "yourself", "yourselves"
 ]);
 
-function retrieveRelevantChunks(query, topK = 5) {
+function retrieveRelevantChunks(query, topK = 5, knowledgeBase = []) {
   const clean = query.toLowerCase().replace(/[^\w\s]/g, " ");
   const rawTerms = clean.split(/\s+/).filter(Boolean);
   const terms = rawTerms.filter(t => !STOPWORDS.has(t) && t.length > 1);
@@ -38,7 +68,7 @@ function retrieveRelevantChunks(query, topK = 5) {
 
   const scored = [];
 
-  for (const doc of KNOWLEDGE_BASE) {
+  for (const doc of knowledgeBase) {
     const docTitleLower = (doc.title || "").toLowerCase();
     let docTitleBoost = 0;
     for (const term of terms) {
@@ -167,7 +197,8 @@ export async function onRequest(context) {
   }
 
   // Step A: Retrieve relevant regulatory context from edge knowledge base
-  const retrievedChunks = retrieveRelevantChunks(question, 5);
+  const knowledgeBase = await getKnowledgeBase(request, env);
+  const retrievedChunks = retrieveRelevantChunks(question, 5, knowledgeBase);
 
   // If no chunks match at all, strict compliance fallback
   if (retrievedChunks.length === 0) {

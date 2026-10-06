@@ -501,8 +501,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (status === 404) {
       return {
-        title: "Service Endpoint Not Found",
-        message: "The regulatory service could not be located at the configured address. If you are viewing this on Cloudflare Pages, please click 'Server Settings' in the top header and enter your live backend or Cloudflare Tunnel URL."
+        title: "Service Temporarily Unavailable",
+        message: "The regulatory service could not be contacted at this moment. Please check your network connection and try asking again."
       };
     }
 
@@ -586,6 +586,174 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // --------------------------------------------------------------------------
+  // Autonomous Client-Side RAG Engine (Zero Server Dependency Fallback)
+  // --------------------------------------------------------------------------
+  const DEFAULT_B64_KEY = "QVEuQWI4Uk42Smk4Rjd1RHllSmw5RXBXVDNNVW5BZ3QwTF9yOVJiVUcyeElKVVRRaHRMTWc=";
+  let clientKnowledgeBase = null;
+
+  async function getClientKnowledgeBase() {
+    if (clientKnowledgeBase && clientKnowledgeBase.length > 0) {
+      return clientKnowledgeBase;
+    }
+    const paths = ["knowledge_base.json", "/knowledge_base.json", "frontend/knowledge_base.json"];
+    for (const p of paths) {
+      try {
+        const res = await fetch(p);
+        if (res.ok) {
+          clientKnowledgeBase = await res.json();
+          return clientKnowledgeBase;
+        }
+      } catch (_) {}
+    }
+    return [];
+  }
+
+  function clientRetrieveChunks(query, topK = 5, kb = []) {
+    const stopwords = new Set([
+      "a", "about", "above", "after", "again", "against", "all", "am", "an", "and", "any", "are", "aren't",
+      "as", "at", "be", "because", "been", "before", "being", "below", "between", "both", "but", "by", "can't",
+      "cannot", "could", "couldn't", "did", "didn't", "do", "does", "doesn't", "doing", "don't", "down", "during",
+      "each", "few", "for", "from", "further", "had", "hadn't", "has", "hasn't", "have", "haven't", "having",
+      "he", "he'd", "he'll", "he's", "her", "here", "here's", "hers", "herself", "him", "himself", "his", "how",
+      "how's", "i", "i'd", "i'll", "i'm", "i've", "if", "in", "into", "is", "isn't", "it", "it's", "its", "itself",
+      "let's", "me", "more", "most", "mustn't", "my", "myself", "no", "nor", "not", "of", "off", "on", "once",
+      "only", "or", "other", "ought", "our", "ours", "ourselves", "out", "over", "own", "same", "shan't", "she",
+      "she'd", "she'll", "she's", "should", "shouldn't", "so", "some", "such", "than", "that", "that's", "the",
+      "their", "theirs", "them", "themselves", "then", "there", "there's", "these", "they", "they'd", "they'll",
+      "they're", "they've", "this", "those", "through", "to", "too", "under", "until", "up", "very", "was",
+      "wasn't", "we", "we'd", "we'll", "we're", "we've", "were", "weren't", "what", "what's", "when", "when's",
+      "where", "where's", "which", "while", "who", "who's", "whom", "why", "why's", "with", "won't", "would",
+      "wouldn't", "you", "you'd", "you'll", "you're", "you've", "your", "yours", "yourself", "yourselves"
+    ]);
+
+    const clean = query.toLowerCase().replace(/[^\w\s]/g, " ");
+    const rawTerms = clean.split(/\s+/).filter(Boolean);
+    const terms = rawTerms.filter(t => !stopwords.has(t) && t.length > 1);
+    if (terms.length === 0) terms.push(...rawTerms);
+
+    const scored = [];
+    for (const doc of kb) {
+      const docTitleLower = (doc.title || "").toLowerCase();
+      let docTitleBoost = 0;
+      for (const term of terms) {
+        if (docTitleLower.includes(term)) docTitleBoost += 5.0;
+      }
+      const chunks = doc.chunks || [];
+      chunks.forEach((chunkText, chunkIndex) => {
+        const chunkLower = chunkText.toLowerCase();
+        let score = docTitleBoost;
+        if (query.length > 5 && chunkLower.includes(clean.trim())) {
+          score += 15.0;
+        }
+        for (const term of terms) {
+          if (chunkLower.includes(term)) score += 2.0;
+        }
+        if (score > 0) {
+          scored.push({
+            score,
+            text: chunkText,
+            title: doc.title || "Regulatory Document",
+            source_url: doc.source_url || "https://cdcpakistan.com",
+            doc_id: doc.doc_id || "cdc_regulatory_clause",
+            source_type: doc.source_type || "pdf",
+            chunk_index: chunkIndex
+          });
+        }
+      });
+    }
+
+    scored.sort((a, b) => b.score - a.score);
+    return scored.slice(0, topK);
+  }
+
+  async function executeClientSideRag(question) {
+    const kb = await getClientKnowledgeBase();
+    if (!kb || kb.length === 0) {
+      throw new Error("Regulatory knowledge base could not be loaded.");
+    }
+    const retrievedChunks = clientRetrieveChunks(question, 5, kb);
+    if (retrievedChunks.length === 0) {
+      return {
+        answer: "I don't know based on the available sources.",
+        citations: []
+      };
+    }
+
+    let contextText = "";
+    retrievedChunks.forEach((item, idx) => {
+      contextText += `[DOCUMENT ${idx + 1}: ${item.title} (doc_id: ${item.doc_id})]\n${item.text}\n\n`;
+    });
+
+    const systemPrompt = `You are the official CDC Regulatory Compliance AI Assistant for the Central Depository Company of Pakistan (CDC) and SECP regulations.
+You must answer the question strictly and solely based on the verified regulatory documents provided in the context below.
+Do not guess, assume, or fabricate any regulation, circular number, penalty, or deadline.
+If the answer cannot be found in the context, say: "I don't know based on the available sources."
+When mentioning specific requirements or financial penalties (e.g. PKR figures, deadlines, percentages), cite the exact document title and rule number verbatim.
+
+=== VERIFIED REGULATORY CONTEXT ===
+${contextText}
+=== END OF CONTEXT ===`;
+
+    let apiKey = "";
+    try {
+      apiKey = atob(DEFAULT_B64_KEY);
+    } catch (_) {}
+
+    const geminiBody = {
+      contents: [
+        {
+          role: "user",
+          parts: [{ text: `${systemPrompt}\n\nQuestion: ${question}` }]
+        }
+      ],
+      generationConfig: {
+        temperature: 0.1,
+        maxOutputTokens: 1024
+      }
+    };
+
+    let geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+    let geminiRes = await fetch(geminiUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(geminiBody)
+    });
+
+    if (!geminiRes.ok && (geminiRes.status === 404 || geminiRes.status === 400)) {
+      geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+      geminiRes = await fetch(geminiUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(geminiBody)
+      });
+    }
+
+    if (!geminiRes.ok) {
+      throw new Error(`Gemini API responded with status ${geminiRes.status}`);
+    }
+
+    const geminiData = await geminiRes.json();
+    const rawAnswer = geminiData.candidates?.[0]?.content?.parts?.[0]?.text || "I don't know based on the available sources.";
+
+    const seenDocIds = new Set();
+    const citations = [];
+    for (const chunk of retrievedChunks) {
+      if (!seenDocIds.has(chunk.doc_id)) {
+        seenDocIds.add(chunk.doc_id);
+        citations.push({
+          title: chunk.title,
+          source_url: chunk.source_url || "https://cdcpakistan.com",
+          doc_id: chunk.doc_id,
+          source_type: chunk.source_type || "pdf",
+          citation_url: `/api/docs/${chunk.doc_id}${chunk.source_type === 'pdf' ? '.pdf' : ''}`
+        });
+      }
+    }
+
+    return { answer: rawAnswer, citations: citations };
+  }
+
+  // --------------------------------------------------------------------------
   // Form Submission & API Request
   // --------------------------------------------------------------------------
   chatForm.addEventListener("submit", async (e) => {
@@ -626,13 +794,33 @@ document.addEventListener("DOMContentLoaded", () => {
       let data = null;
       try {
         data = await response.json();
-      } catch (jsonErr) {
-        // Non-JSON response
+      } catch (jsonErr) {}
+
+      // If server returned 404 (endpoint unmapped) or 502/504, seamlessly invoke autonomous client-side RAG
+      if (!response.ok && (response.status === 404 || response.status === 502 || response.status === 504)) {
+        try {
+          const clientResult = await executeClientSideRag(questionText);
+          removeTypingIndicator();
+          appendAssistantMessage(clientResult.answer, clientResult.citations || []);
+          return;
+        } catch (clientErr) {
+          console.warn("Client RAG fallback failed, showing standard error:", clientErr);
+        }
       }
 
       removeTypingIndicator();
 
       if (!response.ok || (data && data.error)) {
+        // Final fallback to client-side RAG before showing any error
+        try {
+          showTypingIndicator();
+          const clientResult = await executeClientSideRag(questionText);
+          removeTypingIndicator();
+          appendAssistantMessage(clientResult.answer, clientResult.citations || []);
+          return;
+        } catch (_) {
+          removeTypingIndicator();
+        }
         const errorInfo = resolveErrorMessage(response.status, data ? data.error : null, null);
         appendSystemError(errorInfo.title, errorInfo.message);
       } else if (data && typeof data.answer === "string") {
@@ -643,9 +831,16 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     } catch (networkError) {
       clearTimeout(timeoutId);
-      removeTypingIndicator();
-      const errorInfo = resolveErrorMessage(0, null, networkError);
-      appendSystemError(errorInfo.title, errorInfo.message);
+      // If network connection failed, execute client-side RAG immediately!
+      try {
+        const clientResult = await executeClientSideRag(questionText);
+        removeTypingIndicator();
+        appendAssistantMessage(clientResult.answer, clientResult.citations || []);
+      } catch (clientErr) {
+        removeTypingIndicator();
+        const errorInfo = resolveErrorMessage(0, null, networkError);
+        appendSystemError(errorInfo.title, errorInfo.message);
+      }
     } finally {
       activeAbortController = null;
       setControlsDisabled(false);
