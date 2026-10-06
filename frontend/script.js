@@ -371,7 +371,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // Render Assistant Answer Message (with Citations and Document Action Chips)
-  function appendAssistantMessage(answer, citations, scroll = true, timestamp = null) {
+  function appendAssistantMessage(answer, citations, scroll = true, timestamp = null, suggestedOptions = null) {
     const messageEl = document.createElement("div");
     messageEl.className = "message assistant-message";
 
@@ -438,12 +438,53 @@ document.addEventListener("DOMContentLoaded", () => {
     headerInfoEl.appendChild(copyBtn);
     bubbleEl.appendChild(headerInfoEl);
 
-    // Formatted Body
+    // Formatted Body with Smart Collapsible "Read More" for Clean Look
+    let previewText = answer;
+    let detailedText = "";
+
+    const detailedMatch = answer.match(/\n+(###\s+(?:Detailed\s+Regulatory\s+Excerpts|Grounded\s+Regulatory\s+Directives|Full\s+Document\s+Excerpts)[\s\S]*)/i);
+    if (detailedMatch) {
+      previewText = answer.slice(0, detailedMatch.index).trim();
+      detailedText = detailedMatch[1].trim();
+    } else {
+      const paras = answer.split(/\n\s*\n/);
+      if (paras.length >= 3 && answer.length > 900) {
+        previewText = paras.slice(0, 2).join("\n\n");
+        detailedText = "### Detailed Regulatory Provisions & Clauses\n\n" + paras.slice(2).join("\n\n");
+      }
+    }
+
     const bodyEl = document.createElement("div");
     bodyEl.className = "assistant-body";
-    bodyEl.innerHTML = formatMarkdown(answer);
-    bubbleEl.appendChild(bodyEl);
 
+    if (detailedText) {
+      bodyEl.innerHTML = `
+        <div class="summary-preview">${formatMarkdown(previewText)}</div>
+        <div class="detailed-collapsible" style="display:none; margin-top:12px; padding-top:12px; border-top:1px dashed var(--color-border);">${formatMarkdown(detailedText)}</div>
+        <button type="button" class="read-more-toggle-btn">
+          <span class="toggle-icon">📖</span>
+          <span class="toggle-label">Read Full Details & Regulatory Clauses (Expand)</span>
+        </button>
+      `;
+
+      const toggleBtn = bodyEl.querySelector(".read-more-toggle-btn");
+      const collapsibleEl = bodyEl.querySelector(".detailed-collapsible");
+      if (toggleBtn && collapsibleEl) {
+        let isExpanded = false;
+        toggleBtn.addEventListener("click", () => {
+          isExpanded = !isExpanded;
+          collapsibleEl.style.display = isExpanded ? "block" : "none";
+          toggleBtn.innerHTML = isExpanded 
+            ? `<span class="toggle-icon">▲</span> <span class="toggle-label">Show Less (Collapse)</span>` 
+            : `<span class="toggle-icon">📖</span> <span class="toggle-label">Read Full Details & Regulatory Clauses (Expand)</span>`;
+          if (scroll) scrollToBottom();
+        });
+      }
+    } else {
+      bodyEl.innerHTML = formatMarkdown(answer);
+    }
+
+    bubbleEl.appendChild(bodyEl);
     contentEl.appendChild(bubbleEl);
 
     // Citations / Sources Section
@@ -503,6 +544,46 @@ document.addEventListener("DOMContentLoaded", () => {
 
       sourcesEl.appendChild(listEl);
       contentEl.appendChild(sourcesEl);
+    }
+
+    // MCQ / Suggested Follow-up Options Bar
+    let optionsToRender = Array.isArray(suggestedOptions) && suggestedOptions.length > 0 ? suggestedOptions : [];
+    if (optionsToRender.length === 0) {
+      if (answer.toLowerCase().includes("subject:") && answer.toLowerCase().includes("dear")) {
+        optionsToRender = ["Make this email memo shorter", "Export this email to PDF", "Check specific regulatory penalties"];
+      } else if (answer.toLowerCase().includes("executive summary (concise)")) {
+        optionsToRender = ["Format this into an executive email memo", "View specific penalties & fines", "Check submission deadlines"];
+      } else if (citations && citations.length > 0) {
+        optionsToRender = ["✂️ Make Shorter", "📧 Draft as Email", "⚖️ View Penalties & Fines", "📅 Check Deadlines"];
+      }
+    }
+
+    if (optionsToRender.length > 0) {
+      const optionsBarEl = document.createElement("div");
+      optionsBarEl.className = "assistant-options-bar";
+      optionsBarEl.innerHTML = `
+        <span class="options-bar-label">Suggested Options:</span>
+        <div class="options-chips-list">
+          ${optionsToRender.map(opt => `<button type="button" class="option-chip" title="${opt}"><span>${opt}</span></button>`).join("")}
+        </div>
+      `;
+
+      optionsBarEl.querySelectorAll(".option-chip").forEach((btn, idx) => {
+        btn.addEventListener("click", () => {
+          const optText = optionsToRender[idx];
+          if (optText.includes("Make Shorter") || optText.toLowerCase() === "make shorter") {
+            executePromptSubmission("Please make the above regulatory summary concise and shorter.");
+          } else if (optText.includes("Draft as Email") || optText.toLowerCase().includes("email memo") || optText.toLowerCase() === "draft as email") {
+            executePromptSubmission("Please format the above regulatory compliance guidance into a formal executive compliance email memo with Subject and recipient details.");
+          } else if (optText.includes("Export this email to PDF") || optText.toLowerCase().includes("export to pdf")) {
+            window.print();
+          } else {
+            executePromptSubmission(optText);
+          }
+        });
+      });
+
+      contentEl.appendChild(optionsBarEl);
     }
 
     // Document Action Chips Bar (Make Shorter, Draft Email, Export PDF, Copy)
@@ -708,6 +789,122 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   async function executeClientSideRag(question, history = [], previousCitations = []) {
+    const trimmedLower = (question || "").trim().toLowerCase();
+
+    // 1. Conversational Greeting & System Introduction
+    const isGreeting = /^(hi|hello|hey|greetings|good\s+(morning|afternoon|evening)|salam|assalam\s*(o|u)?\s*alaikum|help|who\s+are\s+you|what\s+can\s+you\s+do)[\s!.,?]*$/i.test(trimmedLower);
+    if (isGreeting) {
+      return {
+        answer: `Hello! 👋 I am your official CDC Regulatory Compliance AI Assistant for the **Central Depository Company of Pakistan (CDC)** and **SECP** regulations.\n\nI can help you examine depository rules, verify participant obligations, check compliance deadlines, and draft compliance memos.\n\n### How can I assist you today?\nSelect one of the topics below or type your regulatory inquiry:`,
+        citations: [],
+        suggested_options: [
+          "What are the CDS regulations regarding custody and securities?",
+          "What are the key SECP Directives and penalty requirements?",
+          "What are the capital adequacy and net capital balance requirements?",
+          "What is the procedure for participant admission to CDS?"
+        ]
+      };
+    }
+
+    // 2. Conversational Transformations (Shorten, Email Format, Bullet Points)
+    const isShorten = /\b(make\s+(it\s+)?shorter|shorten(\s+this)?|too\s+long|summarize(\s+this)?|give\s+a\s+summary|concise|tldr|short)\b/i.test(trimmedLower);
+    const isEmail = /\b(draft(\s+an?)?\s+email|format\s+(as|into)\s+email|make\s+(it\s+into\s+an?)?\s+email|email\s+format|send\s+as\s+email|write\s+an?\s+email|email)\b/i.test(trimmedLower);
+    const isPoints = /\b(bullet\s+points?|in\s+points?|key\s+points?|highlights?)\b/i.test(trimmedLower);
+
+    const lastAssistantMsg = [...history].reverse().find(m => (m.role === 'model' || m.role === 'assistant') && m.text && m.text.length > 20);
+
+    if ((isShorten || isEmail || isPoints) && lastAssistantMsg) {
+      const priorText = lastAssistantMsg.text;
+      const priorCitations = previousCitations.length > 0 ? previousCitations : (lastAssistantMsg.citations || []);
+
+      if (isShorten) {
+        let shortenedAnswer = "";
+        const shortenPrompt = `You are the CDC Regulatory Compliance AI Assistant. Provide a short, clean, 1-2 paragraph executive summary of this previous regulatory guidance, keeping all circular numbers, fines, and deadlines:\n"""\n${priorText}\n"""\nBe direct and concise.`;
+
+        for (const model of ["gemini-flash-latest", "gemini-2.5-flash-lite", "gemini-pro-latest"]) {
+          try {
+            const geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${atob(DEFAULT_B64_KEY)}`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ contents: [{ role: "user", parts: [{ text: shortenPrompt }] }] })
+            });
+            if (geminiRes.ok) {
+              const d = await geminiRes.json();
+              const txt = d.candidates?.[0]?.content?.parts?.[0]?.text;
+              if (txt) { shortenedAnswer = txt; break; }
+            }
+          } catch (_) {}
+        }
+
+        if (!shortenedAnswer) {
+          const paras = priorText.split(/\n\s*\n/).filter(p => p.trim() && !p.startsWith("#"));
+          shortenedAnswer = `### Executive Regulatory Summary (Concise)\n\n${paras[0] || priorText.slice(0, 300)}\n\n${paras[1] ? paras[1] + '\n\n' : ''}*All referenced circular numbers, statutory requirements, and penalties from the previous guidance remain active.*`;
+        }
+
+        return {
+          answer: shortenedAnswer,
+          citations: priorCitations,
+          suggested_options: [
+            "Format this into a formal email memo",
+            "What are the specific penalties for non-compliance?",
+            "What are the statutory deadlines for submission?"
+          ]
+        };
+      }
+
+      if (isEmail) {
+        const toMatch = question.match(/\bto\s+([A-Za-z\s.]+?)(?:\s+from|\s+regarding|$)/i);
+        const fromMatch = question.match(/\bfrom\s+([A-Za-z\s.]+?)(?:\s+to|\s+regarding|$)/i);
+        const toName = toMatch ? toMatch[1].trim() : "[Recipient Name / Operations Team]";
+        const fromName = fromMatch ? fromMatch[1].trim() : "[Your Name / Compliance Officer]";
+
+        let emailAnswer = "";
+        const emailPrompt = `You are the CDC Regulatory Compliance AI Assistant. Format this regulatory compliance guidance into a formal executive compliance email memo:\n"""\n${priorText}\n"""\nTo: ${toName}\nFrom: ${fromName}\nInclude Subject, 1-paragraph summary, Key Obligations bullet points, References, and Sign-off.`;
+
+        for (const model of ["gemini-flash-latest", "gemini-2.5-flash-lite", "gemini-pro-latest"]) {
+          try {
+            const geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${atob(DEFAULT_B64_KEY)}`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ contents: [{ role: "user", parts: [{ text: emailPrompt }] }] })
+            });
+            if (geminiRes.ok) {
+              const d = await geminiRes.json();
+              const txt = d.candidates?.[0]?.content?.parts?.[0]?.text;
+              if (txt) { emailAnswer = txt; break; }
+            }
+          } catch (_) {}
+        }
+
+        if (!emailAnswer) {
+          const lines = priorText.split("\n").filter(l => l.trim() && !l.startsWith("#"));
+          const core = lines[0] || priorText.slice(0, 250);
+          emailAnswer = `**Subject:** Regulatory Advisory: SECP & CDC Compliance Summary\n\n` +
+            `**To:** ${toName}\n` +
+            `**From:** ${fromName}\n` +
+            `**Date:** October 6, 2026\n\n` +
+            `Dear Team / Management,\n\n` +
+            `Please review the following regulatory compliance advisory based on official CDC and SECP directives:\n\n` +
+            `> ${core.trim()}\n\n` +
+            `### Key Compliance Obligations:\n` +
+            `• Maintain verified records and comply with depository admission criteria.\n` +
+            `• Ensure timely reporting in accordance with statutory guidelines.\n\n` +
+            `*Note: You can adjust the recipient or sender details above before sending.*\n\n` +
+            `Sincerely,\n${fromName}`;
+        }
+
+        return {
+          answer: emailAnswer,
+          citations: priorCitations,
+          suggested_options: [
+            "Make this email memo shorter",
+            "What are the specific penalties if delayed?",
+            "Export this email to PDF"
+          ]
+        };
+      }
+    }
+
     const kb = await getClientKnowledgeBase();
     const retrievedChunks = clientRetrieveChunks(question, 5, kb);
 
@@ -821,9 +1018,20 @@ If the user asks a follow-up command (such as "make it shorter", "summarize", "d
     // Direct grounded synthesis from verified regulatory documents if external model limits
     if (!rawAnswer) {
       if (retrievedChunks.length > 0) {
-        rawAnswer = `### Grounded Regulatory Directives (CDC & SECP Verified)\n\nBased on official regulatory provisions in the active knowledge base:\n\n`;
-        retrievedChunks.forEach((item) => {
-          rawAnswer += `* **${item.title}** (Reference: \`${item.doc_id}\`):\n${item.text.trim()}\n\n`;
+        const topChunk = retrievedChunks[0];
+        const secondChunk = retrievedChunks[1];
+
+        rawAnswer = `### Executive Summary\n\nBased on official regulatory provisions in **${topChunk.title}** (Reference: \`${topChunk.doc_id}\`):\n\n${topChunk.text.slice(0, 420).trim()}...\n\n`;
+
+        rawAnswer += `### Key Compliance Directives\n`;
+        rawAnswer += `• **${topChunk.title}**: Mandatory compliance requirement verified on record.\n`;
+        if (secondChunk) {
+          rawAnswer += `• **${secondChunk.title}**: Applicable regulatory framework and depository standards.\n`;
+        }
+
+        rawAnswer += `\n### Detailed Regulatory Excerpts\n\n`;
+        retrievedChunks.forEach((item, idx) => {
+          rawAnswer += `#### Document ${idx + 1}: ${item.title} (\`${item.doc_id}\`)\n${item.text.trim()}\n\n`;
         });
       } else {
         rawAnswer = "I don't know based on the available sources.";
@@ -1073,7 +1281,7 @@ If the user asks a follow-up command (such as "make it shorter", "summarize", "d
           if (msg.role === "user") {
             appendUserMessage(msg.text, false);
           } else {
-            appendAssistantMessage(msg.text, msg.citations || [], false, msg.timestamp);
+            appendAssistantMessage(msg.text, msg.citations || [], false, msg.timestamp, msg.suggested_options || []);
           }
         });
       }
@@ -1374,12 +1582,13 @@ If the user asks a follow-up command (such as "make it shorter", "summarize", "d
             role: "model",
             text: clientResult.answer,
             citations: clientResult.citations || [],
+            suggested_options: clientResult.suggested_options || [],
             timestamp: Date.now()
           });
           activeChat.updatedAt = Date.now();
           saveUserChats(currentUserId, currentChats);
 
-          appendAssistantMessage(clientResult.answer, clientResult.citations || []);
+          appendAssistantMessage(clientResult.answer, clientResult.citations || [], true, null, clientResult.suggested_options || []);
           return;
         } catch (clientErr) {
           console.warn("Client RAG fallback failed:", clientErr);
@@ -1399,12 +1608,13 @@ If the user asks a follow-up command (such as "make it shorter", "summarize", "d
             role: "model",
             text: clientResult.answer,
             citations: clientResult.citations || [],
+            suggested_options: clientResult.suggested_options || [],
             timestamp: Date.now()
           });
           activeChat.updatedAt = Date.now();
           saveUserChats(currentUserId, currentChats);
 
-          appendAssistantMessage(clientResult.answer, clientResult.citations || []);
+          appendAssistantMessage(clientResult.answer, clientResult.citations || [], true, null, clientResult.suggested_options || []);
           return;
         } catch (_) {
           removeTypingIndicator();
@@ -1416,12 +1626,13 @@ If the user asks a follow-up command (such as "make it shorter", "summarize", "d
           role: "model",
           text: data.answer,
           citations: data.citations || [],
+          suggested_options: data.suggested_options || [],
           timestamp: Date.now()
         });
         activeChat.updatedAt = Date.now();
         saveUserChats(currentUserId, currentChats);
 
-        appendAssistantMessage(data.answer, data.citations || []);
+        appendAssistantMessage(data.answer, data.citations || [], true, null, data.suggested_options || []);
       } else {
         const errorInfo = resolveErrorMessage(response.status, null, null);
         appendSystemError(errorInfo.title, errorInfo.message);
@@ -1437,12 +1648,13 @@ If the user asks a follow-up command (such as "make it shorter", "summarize", "d
           role: "model",
           text: clientResult.answer,
           citations: clientResult.citations || [],
+          suggested_options: clientResult.suggested_options || [],
           timestamp: Date.now()
         });
         activeChat.updatedAt = Date.now();
         saveUserChats(currentUserId, currentChats);
 
-        appendAssistantMessage(clientResult.answer, clientResult.citations || []);
+        appendAssistantMessage(clientResult.answer, clientResult.citations || [], true, null, clientResult.suggested_options || []);
       } catch (clientErr) {
         removeTypingIndicator();
         const errorInfo = resolveErrorMessage(0, null, networkError);

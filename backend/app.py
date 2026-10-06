@@ -128,7 +128,13 @@ def ask():
         citations = result.get("citations", [])
         return jsonify({
             "answer": result.get("answer", "I don't know based on the available sources."),
-            "citations": citations
+            "citations": citations,
+            "suggested_options": result.get("suggested_options", [
+                "Make this summary shorter",
+                "Format this into an executive email memo",
+                "What are the specific penalties for non-compliance?",
+                "What are the statutory deadlines for submission?"
+            ])
         }), 200
 
     except Exception as exc:

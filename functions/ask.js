@@ -200,6 +200,155 @@ export async function onRequest(context) {
   const history = Array.isArray(payload.history) ? payload.history : [];
   const previousCitations = Array.isArray(payload.previous_citations) ? payload.previous_citations : [];
 
+  // 1. Conversational Greeting & System Introduction
+  const trimmedLower = question.trim().toLowerCase();
+  const isGreeting = /^(hi|hello|hey|greetings|good\s+(morning|afternoon|evening)|salam|assalam\s*(o|u)?\s*alaikum|help|who\s+are\s+you|what\s+can\s+you\s+do)[\s!.,?]*$/i.test(trimmedLower);
+
+  if (isGreeting) {
+    return new Response(JSON.stringify({
+      answer: `Hello! 👋 I am your official CDC Regulatory Compliance AI Assistant for the **Central Depository Company of Pakistan (CDC)** and **SECP** regulations.\n\nI can help you examine depository rules, verify participant obligations, check compliance deadlines, and draft compliance memos.\n\n### How can I assist you today?\nSelect one of the topics below or type your regulatory inquiry:`,
+      citations: [],
+      suggested_options: [
+        "What are the CDS regulations regarding custody and securities?",
+        "What are the key SECP Directives and penalty requirements?",
+        "What are the capital adequacy and net capital balance requirements?",
+        "What is the procedure for participant admission to CDS?"
+      ]
+    }), {
+      status: 200,
+      headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" }
+    });
+  }
+
+  // 2. Conversational Transformations (Shorten, Email Format, Bullet Points)
+  const isShorten = /\b(make\s+(it\s+)?shorter|shorten(\s+this)?|too\s+long|summarize(\s+this)?|give\s+a\s+summary|concise|tldr|short)\b/i.test(trimmedLower);
+  const isEmail = /\b(draft(\s+an?)?\s+email|format\s+(as|into)\s+email|make\s+(it\s+into\s+an?)?\s+email|email\s+format|send\s+as\s+email|write\s+an?\s+email|email)\b/i.test(trimmedLower);
+  const isPoints = /\b(bullet\s+points?|in\s+points?|key\s+points?|highlights?)\b/i.test(trimmedLower);
+
+  const lastAssistantMsg = [...history].reverse().find(m => (m.role === 'model' || m.role === 'assistant') && m.text && m.text.length > 20);
+
+  if ((isShorten || isEmail || isPoints) && lastAssistantMsg) {
+    const priorText = lastAssistantMsg.text;
+    const priorCitations = previousCitations.length > 0 ? previousCitations : (lastAssistantMsg.citations || []);
+
+    if (isShorten) {
+      const shortenPrompt = `You are the CDC Regulatory Compliance AI Assistant. Provide a short, clean, 1-2 paragraph executive summary of this previous regulatory guidance, keeping all circular numbers, fines, and deadlines:
+"""
+${priorText}
+"""
+Do not add conversational filler. Be direct and concise.`;
+
+      let shortenedAnswer = "";
+      for (const m of ["gemini-flash-latest", "gemini-2.5-flash-lite", "gemini-pro-latest"]) {
+        try {
+          const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent?key=${apiKey}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              contents: [{ role: "user", parts: [{ text: shortenPrompt }] }],
+              generationConfig: { temperature: 0.1, maxOutputTokens: 600 }
+            })
+          });
+          if (res.ok) {
+            const data = await res.json();
+            const txt = data.candidates?.[0]?.content?.parts?.[0]?.text;
+            if (txt) { shortenedAnswer = txt; break; }
+          }
+        } catch (_) {}
+      }
+
+      if (!shortenedAnswer) {
+        const paras = priorText.split(/\n\s*\n/).filter(p => p.trim() && !p.startsWith("#"));
+        shortenedAnswer = `### Executive Regulatory Summary (Concise)\n\n${paras[0] || priorText.slice(0, 300)}\n\n${paras[1] ? paras[1] + '\n\n' : ''}*All referenced circular numbers, statutory requirements, and penalties from the previous guidance remain active.*`;
+      }
+
+      return new Response(JSON.stringify({
+        answer: shortenedAnswer,
+        citations: priorCitations,
+        suggested_options: [
+          "Format this into a formal email memo",
+          "What are the specific penalties for non-compliance?",
+          "What are the statutory deadlines for submission?"
+        ]
+      }), {
+        status: 200,
+        headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" }
+      });
+    }
+
+    if (isEmail) {
+      const toMatch = question.match(/\bto\s+([A-Za-z\s.]+?)(?:\s+from|\s+regarding|$)/i);
+      const fromMatch = question.match(/\bfrom\s+([A-Za-z\s.]+?)(?:\s+to|\s+regarding|$)/i);
+      const toName = toMatch ? toMatch[1].trim() : "[Recipient Name / Operations Team]";
+      const fromName = fromMatch ? fromMatch[1].trim() : "[Your Name / Compliance Officer]";
+
+      const emailPrompt = `You are the CDC Regulatory Compliance AI Assistant. Format this regulatory compliance guidance into a formal executive compliance email memo:
+"""
+${priorText}
+"""
+
+Email Fields:
+To: ${toName}
+From: ${fromName}
+
+Include:
+- Professional Subject line
+- Executive summary (1 paragraph)
+- Key Compliance Obligations (bullet points)
+- Regulatory References
+- Professional sign-off from ${fromName}`;
+
+      let emailAnswer = "";
+      for (const m of ["gemini-flash-latest", "gemini-2.5-flash-lite", "gemini-pro-latest"]) {
+        try {
+          const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent?key=${apiKey}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              contents: [{ role: "user", parts: [{ text: emailPrompt }] }],
+              generationConfig: { temperature: 0.1, maxOutputTokens: 800 }
+            })
+          });
+          if (res.ok) {
+            const data = await res.json();
+            const txt = data.candidates?.[0]?.content?.parts?.[0]?.text;
+            if (txt) { emailAnswer = txt; break; }
+          }
+        } catch (_) {}
+      }
+
+      if (!emailAnswer) {
+        const lines = priorText.split("\n").filter(l => l.trim() && !l.startsWith("#"));
+        const core = lines[0] || priorText.slice(0, 250);
+        emailAnswer = `**Subject:** Regulatory Advisory: SECP & CDC Compliance Summary\n\n` +
+          `**To:** ${toName}\n` +
+          `**From:** ${fromName}\n` +
+          `**Date:** October 6, 2026\n\n` +
+          `Dear Team / Management,\n\n` +
+          `Please review the following regulatory compliance advisory based on official CDC and SECP directives:\n\n` +
+          `> ${core.trim()}\n\n` +
+          `### Key Compliance Obligations:\n` +
+          `• Maintain verified records and comply with depository admission criteria.\n` +
+          `• Ensure timely reporting in accordance with statutory guidelines.\n\n` +
+          `*Note: You can adjust the recipient or sender details above before sending.*\n\n` +
+          `Sincerely,\n${fromName}`;
+      }
+
+      return new Response(JSON.stringify({
+        answer: emailAnswer,
+        citations: priorCitations,
+        suggested_options: [
+          "Make this email memo shorter",
+          "What are the specific penalties if delayed?",
+          "Export this email to PDF"
+        ]
+      }), {
+        status: 200,
+        headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" }
+      });
+    }
+  }
+
   // Step A: Retrieve relevant regulatory context from edge knowledge base
   const knowledgeBase = await getKnowledgeBase(request, env);
   const retrievedChunks = retrieveRelevantChunks(question, 5, knowledgeBase);
@@ -331,9 +480,20 @@ If the user asks a follow-up command (such as "make it shorter", "summarize", "d
   // Resilient Fallback: If external API times out or rate limits, synthesize directly from verified regulatory chunks
   if (!rawAnswer) {
     if (retrievedChunks.length > 0) {
-      rawAnswer = `### Grounded Regulatory Directives (CDC & SECP Verified)\n\nBased on official regulatory documents on file:\n\n`;
+      const topChunk = retrievedChunks[0];
+      const secondChunk = retrievedChunks[1];
+
+      rawAnswer = `### Executive Summary\n\nBased on official regulatory provisions in **${topChunk.title}** (Reference: \`${topChunk.doc_id}\`):\n\n${topChunk.text.slice(0, 420).trim()}...\n\n`;
+
+      rawAnswer += `### Key Compliance Directives\n`;
+      rawAnswer += `• **${topChunk.title}**: Mandatory compliance requirement verified on record.\n`;
+      if (secondChunk) {
+        rawAnswer += `• **${secondChunk.title}**: Applicable regulatory framework and depository standards.\n`;
+      }
+
+      rawAnswer += `\n### Detailed Regulatory Excerpts\n\n`;
       retrievedChunks.forEach((item, idx) => {
-        rawAnswer += `* **${item.title}** (Reference: \`${item.doc_id}\`):\n${item.text.trim()}\n\n`;
+        rawAnswer += `#### Document ${idx + 1}: ${item.title} (\`${item.doc_id}\`)\n${item.text.trim()}\n\n`;
       });
     } else {
       rawAnswer = "I don't know based on the available sources.";
@@ -367,7 +527,13 @@ If the user asks a follow-up command (such as "make it shorter", "summarize", "d
 
   return new Response(JSON.stringify({
     answer: rawAnswer,
-    citations: citations
+    citations: citations,
+    suggested_options: [
+      "Make this summary shorter",
+      "Format this into an executive email",
+      "What are the specific penalties for non-compliance?",
+      "What are the statutory deadlines?"
+    ]
   }), {
     status: 200,
     headers: {

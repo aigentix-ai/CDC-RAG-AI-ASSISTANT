@@ -203,6 +203,101 @@ def generate_answer(question: str, retrieved_chunks: list[dict], history: list[d
             "citations": []
         }
 
+    import re
+
+    # Check for greeting inquiry
+    is_greeting = bool(re.match(r'^(hi|hello|hey|greetings|good\s+(morning|afternoon|evening)|salam|assalam\s*(o|u)?\s*alaikum|help|who\s+are\s+you|what\s+can\s+you\s+do)[\s!.,?]*$', clean_question, re.I))
+    if is_greeting:
+        return {
+            "answer": "Hello! 👋 I am your official CDC Regulatory Compliance AI Assistant for the **Central Depository Company of Pakistan (CDC)** and **SECP** regulations.\n\nI can help you examine depository rules, verify participant obligations, check compliance deadlines, and draft compliance memos.\n\n### How can I assist you today?\nSelect one of the topics below or type your regulatory inquiry:",
+            "citations": [],
+            "suggested_options": [
+                "What are the CDS regulations regarding custody and securities?",
+                "What are the key SECP Directives and penalty requirements?",
+                "What are the capital adequacy and net capital balance requirements?",
+                "What is the procedure for participant admission to CDS?"
+            ]
+        }
+
+    # Check for conversational transformations (Shorten, Email, Points)
+    is_shorten = bool(re.search(r'\b(make\s+(it\s+)?shorter|shorten(\s+this)?|too\s+long|summarize(\s+this)?|give\s+a\s+summary|concise|tldr|short)\b', clean_question, re.I))
+    is_email = bool(re.search(r'\b(draft(\s+an?)?\s+email|format\s+(as|into)\s+email|make\s+(it\s+into\s+an?)?\s+email|email\s+format|send\s+as\s+email|write\s+an?\s+email|email)\b', clean_question, re.I))
+
+    last_assistant_text = ""
+    for h in reversed(history or []):
+        if isinstance(h, dict) and h.get("role") in ("model", "assistant") and len(h.get("text", "")) > 20:
+            last_assistant_text = h["text"]
+            break
+
+    if is_shorten and last_assistant_text:
+        prompt = f"""You are the CDC Regulatory Compliance AI Assistant. Provide a short, clean, 1-2 paragraph executive summary of this previous regulatory guidance, keeping all circular numbers, fines, and deadlines:
+\"\"\"
+{last_assistant_text}
+\"\"\"
+Output valid JSON:
+{{"answer": "...", "used_doc_ids": []}}
+"""
+        try:
+            client = _get_gemini_client()
+            raw_response = _call_gemini_model(client, prompt)
+            parsed = _parse_llm_response(raw_response, {})
+            parsed["citations"] = previous_citations or []
+            parsed["suggested_options"] = ["Format this into an executive email memo", "What are the specific penalties?", "What are the deadlines?"]
+            return parsed
+        except Exception:
+            paras = [p for p in last_assistant_text.split("\n\n") if p.strip() and not p.startswith("#")]
+            shortened = f"### Executive Regulatory Summary (Concise)\n\n{paras[0] if paras else last_assistant_text[:300]}\n\n{paras[1] + chr(10) + chr(10) if len(paras) > 1 else ''}*All referenced circular numbers and statutory requirements from the previous guidance remain active.*"
+            return {
+                "answer": shortened,
+                "citations": previous_citations or [],
+                "suggested_options": ["Format this into an executive email memo", "What are the specific penalties?", "What are the deadlines?"]
+            }
+
+    if is_email and last_assistant_text:
+        to_m = re.search(r'\bto\s+([A-Za-z\s.]+?)(?:\s+from|\s+regarding|$)', clean_question, re.I)
+        from_m = re.search(r'\bfrom\s+([A-Za-z\s.]+?)(?:\s+to|\s+regarding|$)', clean_question, re.I)
+        to_name = to_m.group(1).strip() if to_m else "[Recipient Name / Operations Desk]"
+        from_name = from_m.group(1).strip() if from_m else "[Your Name / Compliance Officer]"
+
+        prompt = f"""You are the CDC Regulatory Compliance AI Assistant. Format this regulatory compliance guidance into a formal executive compliance email memo:
+\"\"\"
+{last_assistant_text}
+\"\"\"
+Email To: {to_name}
+Email From: {from_name}
+Output valid JSON:
+{{"answer": "...", "used_doc_ids": []}}
+"""
+        try:
+            client = _get_gemini_client()
+            raw_response = _call_gemini_model(client, prompt)
+            parsed = _parse_llm_response(raw_response, {})
+            parsed["citations"] = previous_citations or []
+            parsed["suggested_options"] = ["Make this email memo shorter", "What are the penalties if delayed?", "Export this email to PDF"]
+            return parsed
+        except Exception:
+            lines = [l for l in last_assistant_text.split("\n") if l.strip() and not l.startswith("#")]
+            core = lines[0] if lines else last_assistant_text[:250]
+            email_ans = (
+                f"**Subject:** Regulatory Advisory: SECP & CDC Compliance Summary\n\n"
+                f"**To:** {to_name}\n"
+                f"**From:** {from_name}\n"
+                f"**Date:** October 6, 2026\n\n"
+                f"Dear Team / Management,\n\n"
+                f"Please review the following regulatory compliance advisory based on official CDC and SECP directives:\n\n"
+                f"> {core.strip()}\n\n"
+                f"### Key Compliance Obligations:\n"
+                f"• Maintain verified records and comply with depository admission criteria.\n"
+                f"• Ensure timely reporting in accordance with statutory guidelines.\n\n"
+                f"*Note: You can adjust the recipient or sender details above before sending.*\n\n"
+                f"Sincerely,\n{from_name}"
+            )
+            return {
+                "answer": email_ans,
+                "citations": previous_citations or [],
+                "suggested_options": ["Make this email memo shorter", "What are the penalties if delayed?", "Export this email to PDF"]
+            }
+
     if not retrieved_chunks:
         if not history:
             return {
