@@ -768,5 +768,39 @@
     ],
     "category_counts": {},
     "batch_count": 0
+  },
+  "crawl_1791272816_4309": {
+    "crawl_id": "crawl_1791272816_4309",
+    "root_url": "https://cdcpakistan.com",
+    "base_domain": "cdcpakistan.com",
+    "max_pages": 10,
+    "delay_seconds": 1.0,
+    "auto_approve": false,
+    "check_robots": true,
+    "allowed_urls": null,
+    "stealth_mode": true,
+    "resume_existing": true,
+    "status": "stopped",
+    "pages_crawled": 0,
+    "pdfs_extracted": 0,
+    "chunks_indexed": 0,
+    "errors_count": 0,
+    "current_url": "",
+    "start_time": null,
+    "end_time": "2026-10-06T07:46:56Z",
+    "last_error": null,
+    "last_captcha_url": null,
+    "has_captcha_block": false,
+    "visited_urls": [],
+    "remaining_queue": [],
+    "logs": [
+      {
+        "timestamp": "07:46:56",
+        "level": "WARN",
+        "message": "Stop signal received; halting crawler gracefully."
+      }
+    ],
+    "category_counts": {},
+    "batch_count": 0
   }
 }

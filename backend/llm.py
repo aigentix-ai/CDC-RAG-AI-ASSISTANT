@@ -185,19 +185,13 @@ def _parse_llm_response(raw_text: str, chunks_by_id: Dict[str, Dict[str, str]]) 
         "citations": citations
     }
 
-def generate_answer(question: str, retrieved_chunks: list[dict]) -> dict:
+def generate_answer(question: str, retrieved_chunks: list[dict], history: list[dict] = None, previous_citations: list[dict] = None) -> dict:
     """
     retrieved_chunks: list of {"text": str, "title": str, "source_url": str, "doc_id": str}
     Returns: {"answer": str, "citations": [{"title":..., "source_url":..., "doc_id":...}, ...]}
     Must enforce: answer ONLY from retrieved_chunks content, or return the
     'I don't know' answer with empty citations if the chunks don't support an answer.
     """
-    if not retrieved_chunks:
-        return {
-            "answer": DONT_KNOW_ANSWER,
-            "citations": []
-        }
-
     # Sanitize and bound question input (strip non-printable characters)
     clean_question = "".join(ch for ch in str(question or "") if ch.isprintable() or ch in "\n\t").strip()[:1000]
     if not clean_question:
@@ -205,6 +199,34 @@ def generate_answer(question: str, retrieved_chunks: list[dict]) -> dict:
             "answer": DONT_KNOW_ANSWER,
             "citations": []
         }
+
+    if not retrieved_chunks:
+        if not history:
+            return {
+                "answer": DONT_KNOW_ANSWER,
+                "citations": []
+            }
+        # Multi-turn follow-up with existing conversation context
+        history_text = "\n".join([f"{h.get('role', 'user')}: {h.get('text', '')}" for h in history if isinstance(h, dict) and h.get('text')])
+        prompt = f"""You are the official CDC Regulatory Assistant.
+The following is an ongoing conversation regarding CDC and SECP regulations:
+{history_text}
+
+User Follow-up Request: {clean_question}
+
+Instructions:
+Answer or transform the previous regulatory guidance as requested (e.g. shorten, summarize, or draft as an email), maintaining strict regulatory accuracy and citing mentioned circulars.
+Output in JSON:
+{{"answer": "...", "used_doc_ids": []}}
+"""
+        try:
+            client = _get_gemini_client()
+            raw_response = _call_gemini_model(client, prompt)
+            parsed = _parse_llm_response(raw_response, {})
+            parsed["citations"] = previous_citations or []
+            return parsed
+        except Exception:
+            return {"answer": DONT_KNOW_ANSWER, "citations": previous_citations or []}
 
     # Map unique doc_id to chunk metadata for deduplication
     chunks_by_id: Dict[str, Dict[str, Any]] = {}

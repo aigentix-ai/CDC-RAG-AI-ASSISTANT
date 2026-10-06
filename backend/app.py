@@ -115,11 +115,14 @@ def ask():
         if len(clean_question) > MAX_QUESTION_LENGTH:
             return jsonify({"error": f"Question exceeds maximum allowed limit of {MAX_QUESTION_LENGTH} characters."}), 400
 
+        history = data.get("history")
+        previous_citations = data.get("previous_citations")
+
         # Step 1: Retrieve relevant context chunks from Chroma
         retrieved_chunks = retrieve(clean_question, top_k=5)
 
-        # Step 2: Generate answer using LLM with anti-injection protections
-        result = generate_answer(clean_question, retrieved_chunks)
+        # Step 2: Generate answer using LLM with anti-injection protections and multi-turn context
+        result = generate_answer(clean_question, retrieved_chunks, history=history, previous_citations=previous_citations)
 
         # Step 3: Return exact response shape with deep-linking citation URLs
         citations = result.get("citations", [])

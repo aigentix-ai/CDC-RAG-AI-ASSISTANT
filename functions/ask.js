@@ -37,7 +37,7 @@ async function getKnowledgeBase(request, env) {
 }
 
 // Obfuscated fallback key for seamless zero-setup live edge execution
-const DEFAULT_B64_KEY = "QVEuQWI4Uk42Smk4Rjd1RHllSmw5RXBXVDNNVW5BZ3QwTF9yOVJiVUcyeElKVVRRaHRMTWc=";
+const DEFAULT_B64_KEY = "QVEuQWI4Uk42SlR4M0xOOVJaWENGYlU5SEd2TFRoMWNmak9IbXIxOW5INFVoc1BzbXlqRXc=";
 
 // Stopwords for edge keyword retrieval
 const STOPWORDS = new Set([
@@ -196,12 +196,16 @@ export async function onRequest(context) {
     });
   }
 
+  // Extract conversation history and previous citations if present
+  const history = Array.isArray(payload.history) ? payload.history : [];
+  const previousCitations = Array.isArray(payload.previous_citations) ? payload.previous_citations : [];
+
   // Step A: Retrieve relevant regulatory context from edge knowledge base
   const knowledgeBase = await getKnowledgeBase(request, env);
   const retrievedChunks = retrieveRelevantChunks(question, 5, knowledgeBase);
 
-  // If no chunks match at all, strict compliance fallback
-  if (retrievedChunks.length === 0) {
+  // If no chunks match at all AND no prior conversation history exists: strict compliance fallback
+  if (retrievedChunks.length === 0 && history.length === 0) {
     return new Response(JSON.stringify({
       answer: "I don't know based on the available sources.",
       citations: []
@@ -211,31 +215,85 @@ export async function onRequest(context) {
     });
   }
 
-  // Step B: Build Grounded Regulatory Prompt
+  // Step B: Build Grounded Regulatory Prompt & Multi-turn Contents
   let contextText = "";
-  retrievedChunks.forEach((item, idx) => {
-    contextText += `[DOCUMENT ${idx + 1}: ${item.title} (doc_id: ${item.doc_id})]\n${item.text}\n\n`;
-  });
+  if (retrievedChunks.length > 0) {
+    retrievedChunks.forEach((item, idx) => {
+      contextText += `[DOCUMENT ${idx + 1}: ${item.title} (doc_id: ${item.doc_id})]\n${item.text}\n\n`;
+    });
+  }
 
   const systemPrompt = `You are the official CDC Regulatory Compliance AI Assistant for the Central Depository Company of Pakistan (CDC) and SECP regulations.
-You must answer the question strictly and solely based on the verified regulatory documents provided in the context below.
+You must answer the question strictly and accurately based on the verified regulatory documents and conversation history provided.
 Do not guess, assume, or fabricate any regulation, circular number, penalty, or deadline.
-If the answer cannot be found in the context, say: "I don't know based on the available sources."
+If the answer cannot be found in the context or prior conversation, say: "I don't know based on the available sources."
 When mentioning specific requirements or financial penalties (e.g. PKR figures, deadlines, percentages), cite the exact document title and rule number verbatim.
+If the user asks a follow-up command (such as "make it shorter", "summarize", "draft as email", "give bullet points"), adapt and transform your previous regulatory answer accurately while retaining all factual circular details, figures, and regulatory citations.`;
 
-=== VERIFIED REGULATORY CONTEXT ===
-${contextText}
-=== END OF CONTEXT ===`;
+  let contents = [];
+
+  if (history.length > 0) {
+    // Multi-turn context conversation
+    let firstUserPrompt = `${systemPrompt}\n\n`;
+    if (contextText) {
+      firstUserPrompt += `=== VERIFIED REGULATORY CONTEXT ===\n${contextText}\n=== END OF CONTEXT ===\n\n`;
+    }
+
+    let lastRole = null;
+    for (let i = 0; i < history.length; i++) {
+      const h = history[i];
+      const role = (h.role === "model" || h.role === "assistant") ? "model" : "user";
+      const txt = (h.text || "").trim();
+      if (!txt) continue;
+
+      if (contents.length === 0 && role === "user") {
+        contents.push({
+          role: "user",
+          parts: [{ text: `${firstUserPrompt}Question: ${txt}` }]
+        });
+        lastRole = "user";
+      } else if (role !== lastRole) {
+        contents.push({
+          role: role,
+          parts: [{ text: txt }]
+        });
+        lastRole = role;
+      } else {
+        contents[contents.length - 1].parts[0].text += `\n\n${txt}`;
+      }
+    }
+
+    // Add latest user prompt
+    let latestUserText = question;
+    if (contextText && retrievedChunks.length > 0) {
+      latestUserText = `[NEW REGULATORY CONTEXT FOUND]\n${contextText}\n\nUser Question/Instruction: ${question}`;
+    }
+
+    if (contents.length === 0) {
+      contents.push({
+        role: "user",
+        parts: [{ text: `${firstUserPrompt}Question: ${question}` }]
+      });
+    } else if (lastRole === "user") {
+      contents[contents.length - 1].parts[0].text += `\n\n${latestUserText}`;
+    } else {
+      contents.push({
+        role: "user",
+        parts: [{ text: latestUserText }]
+      });
+    }
+  } else {
+    // Single-turn request
+    contents.push({
+      role: "user",
+      parts: [
+        { text: `${systemPrompt}\n\n=== VERIFIED REGULATORY CONTEXT ===\n${contextText}\n=== END OF CONTEXT ===\n\nQuestion: ${question}` }
+      ]
+    });
+  }
 
   const geminiBody = {
-    contents: [
-      {
-        role: "user",
-        parts: [
-          { text: `${systemPrompt}\n\nQuestion: ${question}` }
-        ]
-      }
-    ],
+    contents: contents,
     generationConfig: {
       temperature: 0.1,
       maxOutputTokens: 1024
@@ -273,19 +331,28 @@ ${contextText}
   const geminiData = await geminiRes.json();
   const rawAnswer = geminiData.candidates?.[0]?.content?.parts?.[0]?.text || "I don't know based on the available sources.";
 
-  // Format citations from retrieved chunks
+  // Format citations from retrieved chunks or carry over previous citations
   const seenDocIds = new Set();
   const citations = [];
-  for (const chunk of retrievedChunks) {
-    if (!seenDocIds.has(chunk.doc_id)) {
-      seenDocIds.add(chunk.doc_id);
-      citations.push({
-        title: chunk.title,
-        source_url: chunk.source_url || "https://cdcpakistan.com",
-        doc_id: chunk.doc_id,
-        source_type: chunk.source_type || "pdf",
-        citation_url: `/api/docs/${chunk.doc_id}${chunk.source_type === 'pdf' ? '.pdf' : ''}`
-      });
+  if (retrievedChunks.length > 0) {
+    for (const chunk of retrievedChunks) {
+      if (!seenDocIds.has(chunk.doc_id)) {
+        seenDocIds.add(chunk.doc_id);
+        citations.push({
+          title: chunk.title,
+          source_url: chunk.source_url || "https://cdcpakistan.com",
+          doc_id: chunk.doc_id,
+          source_type: chunk.source_type || "pdf",
+          citation_url: `/api/docs/${chunk.doc_id}${chunk.source_type === 'pdf' ? '.pdf' : ''}`
+        });
+      }
+    }
+  } else if (previousCitations && previousCitations.length > 0) {
+    for (const cit of previousCitations) {
+      if (cit && cit.doc_id && !seenDocIds.has(cit.doc_id)) {
+        seenDocIds.add(cit.doc_id);
+        citations.push(cit);
+      }
     }
   }
 
