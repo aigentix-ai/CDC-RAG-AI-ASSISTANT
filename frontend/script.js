@@ -615,12 +615,6 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function resolveErrorMessage(status, backendError, networkError) {
-    if (networkError) {
-      return {
-        title: "Connection Notice",
-        message: "Network request encountered an issue. The assistant will switch to local verified knowledge."
-      };
-    }
     if (status === 400 && backendError) {
       return {
         title: "Unable to Process Request",
@@ -628,8 +622,8 @@ document.addEventListener("DOMContentLoaded", () => {
       };
     }
     return {
-      title: "Notice",
-      message: backendError || "The regulatory service could not be located. Using verified local sources."
+      title: "System Alert",
+      message: backendError || "Please rephrase your question or try again."
     };
   }
 
@@ -792,28 +786,49 @@ If the user asks a follow-up command (such as "make it shorter", "summarize", "d
       }
     };
 
-    let geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
-    let geminiRes = await fetch(geminiUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(geminiBody)
-    });
+    // Step C: Try Candidate Gemini Models with timeout
+    let rawAnswer = "";
+    const candidateModels = [
+      "gemini-flash-latest",
+      "gemini-2.5-flash-lite",
+      "gemini-pro-latest",
+      "gemini-2.5-flash"
+    ];
 
-    if (!geminiRes.ok && (geminiRes.status === 404 || geminiRes.status === 400)) {
-      geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
-      geminiRes = await fetch(geminiUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(geminiBody)
-      });
+    for (const model of candidateModels) {
+      try {
+        const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 10000);
+        const geminiRes = await fetch(geminiUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(geminiBody),
+          signal: controller.signal
+        });
+        clearTimeout(timeout);
+        if (geminiRes.ok) {
+          const geminiData = await geminiRes.json();
+          const text = geminiData.candidates?.[0]?.content?.parts?.[0]?.text;
+          if (text) {
+            rawAnswer = text;
+            break;
+          }
+        }
+      } catch (_) {}
     }
 
-    if (!geminiRes.ok) {
-      throw new Error(`Gemini API error: ${geminiRes.status}`);
+    // Direct grounded synthesis from verified regulatory documents if external model limits
+    if (!rawAnswer) {
+      if (retrievedChunks.length > 0) {
+        rawAnswer = `### Grounded Regulatory Directives (CDC & SECP Verified)\n\nBased on official regulatory provisions in the active knowledge base:\n\n`;
+        retrievedChunks.forEach((item) => {
+          rawAnswer += `* **${item.title}** (Reference: \`${item.doc_id}\`):\n${item.text.trim()}\n\n`;
+        });
+      } else {
+        rawAnswer = "I don't know based on the available sources.";
+      }
     }
-
-    const geminiData = await geminiRes.json();
-    const rawAnswer = geminiData.candidates?.[0]?.content?.parts?.[0]?.text || "I don't know based on the available sources.";
 
     const seenDocIds = new Set();
     const citations = [];
@@ -845,6 +860,49 @@ If the user asks a follow-up command (such as "make it shorter", "summarize", "d
   // --------------------------------------------------------------------------
   // Chat Session Manager (Sidebar & Multi-Chat Storage)
   // --------------------------------------------------------------------------
+  function togglePinChat(chatId) {
+    const chat = currentChats.find(c => c.id === chatId);
+    if (!chat) return;
+    chat.isPinned = !chat.isPinned;
+    // Reorder: pinned chats at top
+    currentChats.sort((a, b) => (b.isPinned ? 1 : 0) - (a.isPinned ? 1 : 0));
+    saveUserChats(currentUserId, currentChats);
+    renderChatList();
+  }
+
+  function moveChatUp(chatId) {
+    const idx = currentChats.findIndex(c => c.id === chatId);
+    if (idx > 0) {
+      const temp = currentChats[idx];
+      currentChats[idx] = currentChats[idx - 1];
+      currentChats[idx - 1] = temp;
+      saveUserChats(currentUserId, currentChats);
+      renderChatList();
+    }
+  }
+
+  function moveChatDown(chatId) {
+    const idx = currentChats.findIndex(c => c.id === chatId);
+    if (idx >= 0 && idx < currentChats.length - 1) {
+      const temp = currentChats[idx];
+      currentChats[idx] = currentChats[idx + 1];
+      currentChats[idx + 1] = temp;
+      saveUserChats(currentUserId, currentChats);
+      renderChatList();
+    }
+  }
+
+  function renameChat(chatId, newTitle) {
+    const chat = currentChats.find(c => c.id === chatId);
+    if (!chat) return;
+    const clean = (newTitle || "").trim();
+    if (clean) {
+      chat.title = clean;
+      saveUserChats(currentUserId, currentChats);
+      renderChatList();
+    }
+  }
+
   function renderChatList() {
     if (!chatHistoryList) return;
     chatHistoryList.innerHTML = "";
@@ -860,32 +918,119 @@ If the user asks a follow-up command (such as "make it shorter", "summarize", "d
       return;
     }
 
-    currentChats.forEach((chat) => {
+    currentChats.forEach((chat, idx) => {
       const itemEl = document.createElement("div");
       itemEl.className = `chat-history-item ${chat.id === currentChatId ? 'active' : ''}`;
       itemEl.setAttribute("data-id", chat.id);
       itemEl.setAttribute("role", "button");
       itemEl.setAttribute("tabindex", "0");
 
+      const isPinned = !!chat.isPinned;
+
       itemEl.innerHTML = `
         <div class="chat-item-main">
-          <span class="chat-item-icon">💬</span>
+          ${isPinned ? '<span class="chat-pin-badge" title="Pinned conversation">📌</span>' : '<span class="chat-item-icon">💬</span>'}
           <span class="chat-item-title" title="${chat.title}">${chat.title}</span>
         </div>
-        <button type="button" class="chat-delete-btn" title="Delete conversation" aria-label="Delete conversation">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="3 6 5 6 21 6"/>
-            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
-          </svg>
-        </button>
+        <div class="chat-actions-strip">
+          <button type="button" class="chat-action-btn btn-pin ${isPinned ? 'is-pinned' : ''}" title="${isPinned ? 'Unpin conversation' : 'Pin to top'}" aria-label="Pin conversation">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="${isPinned ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2">
+              <path d="M21 10V8l-6-6-2 2-3 3-4 1 6 6 1-4 3-3 2 2z"/>
+              <line x1="3" y1="21" x2="10" y2="14"/>
+            </svg>
+          </button>
+          <button type="button" class="chat-action-btn btn-rename" title="Rename conversation" aria-label="Rename conversation">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+            </svg>
+          </button>
+          <button type="button" class="chat-action-btn btn-up" title="Move conversation up" aria-label="Move up" ${idx === 0 ? 'style="opacity:0.3;pointer-events:none;"' : ''}>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <polyline points="18 15 12 9 6 15"/>
+            </svg>
+          </button>
+          <button type="button" class="chat-action-btn btn-down" title="Move conversation down" aria-label="Move down" ${idx === currentChats.length - 1 ? 'style="opacity:0.3;pointer-events:none;"' : ''}>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <polyline points="6 9 12 15 18 9"/>
+            </svg>
+          </button>
+          <button type="button" class="chat-action-btn btn-delete" title="Delete conversation" aria-label="Delete conversation">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+              <polyline points="3 6 5 6 21 6"/>
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+            </svg>
+          </button>
+        </div>
       `;
 
       itemEl.addEventListener("click", (e) => {
-        if (e.target.closest(".chat-delete-btn")) return;
+        if (e.target.closest(".chat-action-btn") || e.target.closest(".chat-rename-input")) return;
         switchChat(chat.id);
       });
 
-      const delBtn = itemEl.querySelector(".chat-delete-btn");
+      const pinBtn = itemEl.querySelector(".btn-pin");
+      if (pinBtn) {
+        pinBtn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          togglePinChat(chat.id);
+        });
+      }
+
+      const renameBtn = itemEl.querySelector(".btn-rename");
+      if (renameBtn) {
+        renameBtn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          const titleContainer = itemEl.querySelector(".chat-item-main");
+          if (!titleContainer) return;
+
+          const currentTitleText = chat.title;
+          titleContainer.innerHTML = `
+            <input type="text" class="chat-rename-input" value="${currentTitleText}" maxlength="50" />
+          `;
+          const inputEl = titleContainer.querySelector(".chat-rename-input");
+          inputEl.focus();
+          inputEl.select();
+
+          let saved = false;
+          const finishRename = () => {
+            if (saved) return;
+            saved = true;
+            renameChat(chat.id, inputEl.value);
+          };
+
+          inputEl.addEventListener("click", (ev) => ev.stopPropagation());
+          inputEl.addEventListener("keydown", (ev) => {
+            if (ev.key === "Enter") {
+              ev.preventDefault();
+              finishRename();
+            } else if (ev.key === "Escape") {
+              ev.preventDefault();
+              saved = true;
+              renderChatList();
+            }
+          });
+          inputEl.addEventListener("blur", finishRename);
+        });
+      }
+
+      const upBtn = itemEl.querySelector(".btn-up");
+      if (upBtn) {
+        upBtn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          moveChatUp(chat.id);
+        });
+      }
+
+      const downBtn = itemEl.querySelector(".btn-down");
+      if (downBtn) {
+        downBtn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          moveChatDown(chat.id);
+        });
+      }
+
+      const delBtn = itemEl.querySelector(".btn-delete");
       if (delBtn) {
         delBtn.addEventListener("click", (e) => {
           e.stopPropagation();

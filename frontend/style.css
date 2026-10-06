@@ -1241,27 +1241,66 @@ body.sidebar-collapsed .chat-sidebar {
   font-size: 0.82rem;
 }
 
-.chat-delete-btn {
+.chat-actions-strip {
   display: none;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+  margin-left: 4px;
+}
+
+.chat-history-item:hover .chat-actions-strip,
+.chat-history-item.active .chat-actions-strip {
+  display: flex;
+}
+
+.chat-action-btn {
   background: none;
   border: none;
   color: var(--color-text-muted);
-  padding: 3px;
+  width: 22px;
+  height: 22px;
   border-radius: 4px;
-  cursor: pointer;
-  flex-shrink: 0;
-}
-
-.chat-history-item:hover .chat-delete-btn,
-.chat-history-item.active .chat-delete-btn {
   display: flex;
   align-items: center;
   justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  padding: 0;
 }
 
-.chat-delete-btn:hover {
+.chat-action-btn:hover {
+  background: rgba(15, 23, 42, 0.08);
+  color: var(--color-text-primary);
+}
+
+.chat-action-btn.btn-delete:hover {
+  background: rgba(239, 68, 68, 0.12);
   color: #ef4444;
-  background: rgba(239, 68, 68, 0.1);
+}
+
+.chat-action-btn.btn-pin.is-pinned {
+  color: #d97706;
+}
+
+.chat-pin-badge {
+  display: inline-flex;
+  font-size: 0.72rem;
+  color: #d97706;
+  margin-right: 3px;
+  flex-shrink: 0;
+}
+
+.chat-rename-input {
+  width: 100%;
+  padding: 2px 6px;
+  font-size: 0.82rem;
+  border: 1px solid var(--color-accent);
+  border-radius: 4px;
+  background: #ffffff;
+  outline: none;
+  font-family: inherit;
+  color: var(--color-text-primary);
 }
 
 .no-chats-hint {
