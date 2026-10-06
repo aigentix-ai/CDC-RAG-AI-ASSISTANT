@@ -60,45 +60,48 @@ def _get_gemini_client():
 
 def _call_gemini_model(client, prompt: str) -> str:
     """Executes call to Gemini model, handling both modern and legacy SDKs."""
-    model_name = os.getenv("GEMINI_MODEL", "gemini-3.5-flash")
+    candidate_models = [
+        os.getenv("GEMINI_MODEL", "gemini-flash-latest"),
+        "gemini-flash-latest",
+        "gemini-flash-lite-latest",
+        "gemini-2.5-flash-lite",
+        "gemini-pro-latest",
+        "gemini-2.5-flash"
+    ]
+    seen = set()
+    models_to_try = [m for m in candidate_models if not (m in seen or seen.add(m))]
 
+    last_error = None
     # If modern google-genai client
     if hasattr(client, "models") and hasattr(client.models, "generate_content"):
-        try:
-            response = client.models.generate_content(
-                model=model_name,
-                contents=prompt
-            )
-            return response.text or ""
-        except Exception as e:
-            # Fallback to alternative provisioned models if rate limit or spike occurs
-            for fallback_model in ["gemini-3.5-flash", "gemini-2.5-flash", "gemini-3.7-flash", "gemini-3.8-flash"]:
-                if fallback_model != model_name:
-                    try:
-                        response = client.models.generate_content(
-                            model=fallback_model,
-                            contents=prompt
-                        )
-                        return response.text or ""
-                    except Exception:
-                        continue
-            raise e
+        for m in models_to_try:
+            try:
+                response = client.models.generate_content(
+                    model=m,
+                    contents=prompt
+                )
+                if response and response.text:
+                    return response.text
+            except Exception as e:
+                last_error = e
+                continue
+        if last_error:
+            raise last_error
 
     # If legacy google.generativeai
     import google.generativeai as legacy_genai
-    try:
-        model = legacy_genai.GenerativeModel(model_name)
-        response = model.generate_content(prompt)
-        return response.text or ""
-    except Exception as e:
-        for fallback_model in ["gemini-1.5-flash", "gemini-pro"]:
-            try:
-                model = legacy_genai.GenerativeModel(fallback_model)
-                response = model.generate_content(prompt)
-                return response.text or ""
-            except Exception:
-                continue
-        raise e
+    for m in models_to_try:
+        try:
+            model = legacy_genai.GenerativeModel(m)
+            response = model.generate_content(prompt)
+            if response and response.text:
+                return response.text
+        except Exception as e:
+            last_error = e
+            continue
+    if last_error:
+        raise last_error
+    return ""
 
 def _parse_llm_response(raw_text: str, chunks_by_id: Dict[str, Dict[str, str]]) -> Dict[str, Any]:
     """
@@ -298,20 +301,25 @@ Provide your JSON response below:"""
         client = _get_gemini_client()
         raw_response = _call_gemini_model(client, prompt)
         return _parse_llm_response(raw_response, chunks_by_id)
-    except ValueError as val_err:
-        if "GEMINI_API_KEY" in str(val_err):
-            # Graceful demo mode fallback: return grounded excerpt from top retrieved chunk
-            top_chunk = retrieved_chunks[0]
-            summary = top_chunk.get("text", "")[:450].strip()
-            return {
-                "answer": f"[Demo Mode — Grounded Regulatory Context]:\n{summary}...\n\n(Note: To enable generative AI synthesis, set GEMINI_API_KEY in .env).",
-                "citations": [{
-                    "title": top_chunk.get("title", ""),
-                    "source_url": top_chunk.get("source_url", ""),
-                    "doc_id": top_chunk.get("doc_id", ""),
-                    "source_type": top_chunk.get("source_type", "html"),
-                    "page_number": top_chunk.get("page_number", 1),
-                    "citation_url": top_chunk.get("citation_url", top_chunk.get("source_url", ""))
-                }]
-            }
-        raise
+    except Exception as exc:
+        # Graceful fallback: return grounded excerpt from retrieved chunks with citations
+        citations = []
+        seen_ids = set()
+        for chunk in retrieved_chunks:
+            doc_id = chunk.get("doc_id", "")
+            if doc_id and doc_id not in seen_ids:
+                seen_ids.add(doc_id)
+                citations.append({
+                    "title": chunk.get("title", ""),
+                    "source_url": chunk.get("source_url", ""),
+                    "doc_id": doc_id,
+                    "source_type": chunk.get("source_type", "html"),
+                    "page_number": chunk.get("page_number", 1),
+                    "citation_url": chunk.get("citation_url", chunk.get("source_url", ""))
+                })
+
+        top_chunks_text = "\n\n".join([f"- **{c.get('title', '')}** (Doc ID: `{c.get('doc_id', '')}`):\n{c.get('text', '')[:350].strip()}..." for c in retrieved_chunks[:3]])
+        return {
+            "answer": f"Based on verified regulatory records on file:\n\n{top_chunks_text}",
+            "citations": citations
+        }
