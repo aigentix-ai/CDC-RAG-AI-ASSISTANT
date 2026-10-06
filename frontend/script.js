@@ -17,12 +17,13 @@ function getResolvedApiUrl() {
 
     // 1. Explicit window override (e.g. config.js)
     if (window.CDC_API_URL) return window.CDC_API_URL;
-    // 2. Same-origin deployment (Cloudflare Pages edge function /ask or Flask /ask)
+
+    // 2. Same-origin deployment (Cloudflare Pages /ask or Flask /ask)
     if (window.location && window.location.origin && window.location.origin.startsWith("http")) {
       return `${window.location.origin}/ask`;
     }
   }
-  return API_BASE_URL;
+  return "/ask";
 }
 
 let RESOLVED_API_URL = getResolvedApiUrl();
