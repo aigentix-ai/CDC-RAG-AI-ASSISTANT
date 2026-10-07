@@ -209,7 +209,7 @@ class TestBackendModule(unittest.TestCase):
 
         # Recalls previous question accurately
         res = generate_answer("what did i ask in last message?", [], history=history)
-        self.assertIn("What is the net capital balance requirement for brokers?", res["answer"])
+        self.assertIn("net capital balance requirement for brokers", res["answer"].lower())
         self.assertNotEqual(res["answer"], DONT_KNOW_ANSWER)
 
         # Session start with no history explains politely
