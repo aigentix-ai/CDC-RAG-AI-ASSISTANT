@@ -1454,46 +1454,88 @@ body.sidebar-collapsed .chat-sidebar {
 }
 
 /* ==========================================================================
-   Assistant Action Bar & Action Chips (Make Shorter, Email, PDF, Copy)
+   Unified Assistant Message Footer & Action Controls
    ========================================================================== */
+.assistant-message-footer {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--color-border-subtle, #e2e8f0);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Follow-up Topic Questions (Only genuine questions, zero tool repetition) */
+.assistant-followup-options {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.followup-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted, #64748b);
+}
+
+.options-chips-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.option-chip {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  color: var(--color-text-primary, #1e293b);
+  font-size: 0.77rem;
+  font-weight: 500;
+  padding: 5px 12px;
+  border-radius: 16px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: inherit;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.option-chip:hover {
+  border-color: var(--color-accent, #0284c7);
+  background: #f0f9ff;
+  color: #0369a1;
+  transform: translateY(-1px);
+}
+
+/* Quick Action Toolbar (1-Line, Shorten, Email, Copy) */
 .assistant-action-bar {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 8px;
-  margin-top: 14px;
-  padding-top: 12px;
-  border-top: 1px solid var(--color-border-subtle);
-}
-
-.action-bar-label {
-  font-size: 0.72rem;
-  font-weight: 600;
-  color: var(--color-text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  margin-right: 4px;
 }
 
 .action-chip {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 12px;
+  padding: 5px 11px;
   background: #f8fafc;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-  color: var(--color-text-secondary);
-  font-size: 0.78rem;
-  font-weight: 500;
+  border: 1px solid var(--color-border, #e2e8f0);
+  border-radius: var(--radius-sm, 6px);
+  color: var(--color-text-secondary, #475569);
+  font-size: 0.76rem;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.15s ease;
 }
 
 .action-chip:hover {
   background: #ffffff;
-  border-color: var(--color-accent);
-  color: var(--color-accent);
+  border-color: var(--color-accent, #0284c7);
+  color: var(--color-accent, #0284c7);
   box-shadow: var(--shadow-xs);
   transform: translateY(-1px);
 }
@@ -1503,7 +1545,7 @@ body.sidebar-collapsed .chat-sidebar {
 }
 
 .action-chip-icon {
-  font-size: 0.88rem;
+  font-size: 0.85rem;
 }
 
 /* Read More / Collapsible Regulatory Clauses */
@@ -1531,53 +1573,6 @@ body.sidebar-collapsed .chat-sidebar {
 
 .detailed-collapsible {
   transition: all 0.2s ease-in-out;
-}
-
-/* Assistant Options Bar (MCQs / Suggested Action Chips) */
-.assistant-options-bar {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  margin-top: 10px;
-  padding-top: 10px;
-  border-top: 1px dashed var(--color-border-subtle, #e2e8f0);
-}
-
-.options-bar-label {
-  font-size: 0.7rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--color-text-muted);
-}
-
-.options-chips-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.option-chip {
-  background: #ffffff;
-  border: 1px solid #cbd5e1;
-  color: var(--color-text-primary, #1e293b);
-  font-size: 0.78rem;
-  font-weight: 500;
-  padding: 5px 11px;
-  border-radius: 16px;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  font-family: inherit;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.option-chip:hover {
-  border-color: var(--color-accent, #0284c7);
-  background: #f0f9ff;
-  color: #0369a1;
-  transform: translateY(-1px);
 }
 
 /* ==========================================================================

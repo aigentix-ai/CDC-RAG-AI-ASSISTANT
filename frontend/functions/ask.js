@@ -425,10 +425,11 @@ Include:
 
   const systemPrompt = `You are the official CDC Regulatory Compliance AI Assistant for the Central Depository Company of Pakistan (CDC) and SECP regulations.
 You must answer the question strictly and accurately based on the verified regulatory documents and conversation history provided.
-Do not guess, assume, or fabricate any regulation, circular number, penalty, or deadline.
-If the answer cannot be found in the context or prior conversation, say: "I don't know based on the available sources."
-When mentioning specific requirements or financial penalties (e.g. PKR figures, deadlines, percentages), cite the exact document title and rule number verbatim.
-If the user asks a follow-up command (such as "make it shorter", "summarize", "draft as email", "give bullet points"), adapt and transform your previous regulatory answer accurately while retaining all factual circular details, figures, and regulatory citations.`;
+1. DIRECT ANSWER FIRST: Begin immediately with the direct, helpful answer to the user's inquiry. Do not use conversational filler like "Based on the provided documents".
+2. BOLD KEY FIGURES & CITATIONS: Highlight specific financial penalties (PKR), deadlines, capital requirements, and circular numbers in bold.
+3. CONCISE & READABLE: Answer in 1-2 focused paragraphs or clean bullet points. Do NOT dump raw legal documents or repetitive text into the chat.
+4. GROUNDING: If the answer cannot be found in the context or prior conversation, say: "I don't know based on the available sources."
+5. TRANSFORMATION: If asked to shorten, give 1 line, or draft an email, adapt the guidance immediately with zero fluff.`;
 
   let contents = [];
 
@@ -539,19 +540,13 @@ If the user asks a follow-up command (such as "make it shorter", "summarize", "d
         rawAnswer = `**⚡ 1-Line Regulatory Takeaway:**\n${cleanSentence.trim()}.`;
       } else {
         const secondChunk = retrievedChunks[1];
+        const cleanSummary = topChunk.text.slice(0, 300).trim();
 
-        rawAnswer = `### Executive Summary\n\nBased on official regulatory provisions in **${topChunk.title}** (Reference: \`${topChunk.doc_id}\`):\n\n${topChunk.text.slice(0, 420).trim()}...\n\n`;
-
-        rawAnswer += `### Key Compliance Directives\n`;
-        rawAnswer += `• **${topChunk.title}**: Mandatory compliance requirement verified on record.\n`;
-        if (secondChunk) {
-          rawAnswer += `• **${secondChunk.title}**: Applicable regulatory framework and depository standards.\n`;
-        }
-
-        rawAnswer += `\n### Detailed Regulatory Excerpts\n\n`;
-        retrievedChunks.forEach((item, idx) => {
-          rawAnswer += `#### Document ${idx + 1}: ${item.title} (\`${item.doc_id}\`)\n${item.text.trim()}\n\n`;
-        });
+        rawAnswer = `### Regulatory Compliance Advisory\n\n` +
+          `Based on verified regulatory records in **${topChunk.title}** (\`${topChunk.doc_id}\`):\n\n` +
+          `• **Primary Mandate:** ${cleanSummary}...\n\n` +
+          (secondChunk ? `• **Depository Standard:** Verified against **${secondChunk.title}** for participant compliance.\n\n` : '') +
+          `*For official reference and full statutory text, see the verified citations linked below.*`;
       }
     } else {
       rawAnswer = "I don't know based on the available sources.";

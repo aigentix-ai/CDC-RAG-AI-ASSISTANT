@@ -442,15 +442,15 @@ document.addEventListener("DOMContentLoaded", () => {
     let previewText = answer;
     let detailedText = "";
 
-    const detailedMatch = answer.match(/\n+(###\s+(?:Detailed\s+Regulatory\s+Excerpts|Grounded\s+Regulatory\s+Directives|Full\s+Document\s+Excerpts)[\s\S]*)/i);
+    const detailedMatch = answer.match(/\n+(###\s+(?:Detailed\s+Regulatory\s+Excerpts|Grounded\s+Regulatory\s+Directives|Full\s+Document\s+Excerpts|Detailed\s+Regulatory\s+Provisions|Statutory\s+Clauses)[\s\S]*)/i);
     if (detailedMatch) {
       previewText = answer.slice(0, detailedMatch.index).trim();
       detailedText = detailedMatch[1].trim();
     } else {
       const paras = answer.split(/\n\s*\n/);
-      if (paras.length >= 3 && answer.length > 900) {
+      if (paras.length >= 3 && answer.length > 550 && !answer.toLowerCase().includes("subject:") && !answer.startsWith("**⚡ 1-Line")) {
         previewText = paras.slice(0, 2).join("\n\n");
-        detailedText = "### Detailed Regulatory Provisions & Clauses\n\n" + paras.slice(2).join("\n\n");
+        detailedText = "### Additional Regulatory Details & Statutory Clauses\n\n" + paras.slice(2).join("\n\n");
       }
     }
 
@@ -546,120 +546,174 @@ document.addEventListener("DOMContentLoaded", () => {
       contentEl.appendChild(sourcesEl);
     }
 
-    // MCQ / Suggested Follow-up Options Bar
-    let optionsToRender = Array.isArray(suggestedOptions) && suggestedOptions.length > 0 ? suggestedOptions : [];
-    if (optionsToRender.length === 0) {
-      if (answer.toLowerCase().includes("subject:") && answer.toLowerCase().includes("dear")) {
-        optionsToRender = ["⚡ 1-Line Summary", "Make this email memo shorter", "Export this email to PDF", "Check specific regulatory penalties"];
-      } else if (answer.toLowerCase().includes("executive summary (concise)")) {
-        optionsToRender = ["⚡ 1-Line Summary", "Format this into an executive email memo", "View specific penalties & fines", "Check submission deadlines"];
-      } else if (citations && citations.length > 0) {
-        optionsToRender = ["⚡ 1-Line Summary", "✂️ Make Shorter", "📧 Draft as Email", "⚖️ View Penalties & Fines", "📅 Check Deadlines"];
-      }
+    // Unified Assistant Footer: Topic Choices & Quick Tools (Zero Button Duplication)
+    const isGreetingMsg = answer.toLowerCase().includes("how can i assist you today?") || answer.toLowerCase().includes("select one of the topics below");
+    const isOneLineMsg = answer.includes("1-Line Regulatory Takeaway") || answer.startsWith("**⚡ 1-Line");
+    const isEmailMsg = answer.toLowerCase().includes("subject:") && (answer.toLowerCase().includes("to:") || answer.toLowerCase().includes("dear"));
+
+    // 1. Filter out tool commands from suggestedOptions so only genuine topic inquiries appear as chips
+    let rawOptions = Array.isArray(suggestedOptions) ? suggestedOptions : [];
+    let topicQuestions = rawOptions.filter(opt => {
+      const s = String(opt || "").toLowerCase().trim();
+      return s && !s.includes("1-line") && !s.includes("make shorter") && !s.includes("draft as email") && 
+             !s.includes("draft an email") && !s.includes("export this email") && !s.includes("export to pdf") && 
+             !s.includes("copy text") && !s.includes("format this into an executive email memo");
+    });
+
+    if (isGreetingMsg && topicQuestions.length === 0) {
+      topicQuestions = [
+        "What are the CDS regulations regarding custody and securities?",
+        "What are the key SECP Directives and penalty requirements?",
+        "What are the capital adequacy and net capital balance requirements?",
+        "What is the procedure for participant admission to CDS?"
+      ];
     }
 
-    if (optionsToRender.length > 0) {
-      const optionsBarEl = document.createElement("div");
-      optionsBarEl.className = "assistant-options-bar";
-      optionsBarEl.innerHTML = `
-        <span class="options-bar-label">Suggested Options:</span>
+    const footerEl = document.createElement("div");
+    footerEl.className = "assistant-message-footer";
+
+    // Follow-up Topic Questions (Only if questions exist)
+    if (topicQuestions.length > 0) {
+      const followupEl = document.createElement("div");
+      followupEl.className = "assistant-followup-options";
+      followupEl.innerHTML = `
+        <span class="followup-label">${isGreetingMsg ? "Select a topic to begin:" : "Related Inquiries:"}</span>
         <div class="options-chips-list">
-          ${optionsToRender.map(opt => `<button type="button" class="option-chip" title="${opt}"><span>${opt}</span></button>`).join("")}
+          ${topicQuestions.map(opt => `<button type="button" class="option-chip" title="${opt}"><span>${opt}</span></button>`).join("")}
         </div>
       `;
 
-      optionsBarEl.querySelectorAll(".option-chip").forEach((btn, idx) => {
+      followupEl.querySelectorAll(".option-chip").forEach((btn, idx) => {
         btn.addEventListener("click", () => {
-          const optText = optionsToRender[idx];
-          if (optText.includes("1-Line") || optText.toLowerCase().includes("1-line")) {
-            executePromptSubmission("Give the bottom-line rule for this in 1 line only.");
-          } else if (optText.includes("Make Shorter") || optText.toLowerCase() === "make shorter") {
-            executePromptSubmission("Please make the above regulatory summary concise and shorter.");
-          } else if (optText.includes("Draft as Email") || optText.toLowerCase().includes("email memo") || optText.toLowerCase() === "draft as email") {
-            executePromptSubmission("Please format the above regulatory compliance guidance into a formal executive compliance email memo with Subject and recipient details.");
-          } else if (optText.includes("Export this email to PDF") || optText.toLowerCase().includes("export to pdf")) {
-            window.print();
-          } else {
-            executePromptSubmission(optText);
-          }
+          executePromptSubmission(topicQuestions[idx]);
         });
       });
 
-      contentEl.appendChild(optionsBarEl);
+      footerEl.appendChild(followupEl);
     }
 
-    // Document Action Chips Bar (1-Line Takeaway, Make Shorter, Draft Email, Export PDF, Copy)
-    const actionBarEl = document.createElement("div");
-    actionBarEl.className = "assistant-action-bar";
-    actionBarEl.innerHTML = `
-      <span class="action-bar-label">Document Actions:</span>
-      <button type="button" class="action-chip" data-action="oneline" title="Get a direct 1-line bottom-line answer">
-        <span class="action-chip-icon">⚡</span>
-        <span>1-Line Summary</span>
-      </button>
-      <button type="button" class="action-chip" data-action="shorter" title="Make this regulatory answer shorter and more concise">
-        <span class="action-chip-icon">✂️</span>
-        <span>Make Shorter</span>
-      </button>
-      <button type="button" class="action-chip" data-action="email" title="Format this guidance into an executive compliance email memo">
-        <span class="action-chip-icon">📧</span>
-        <span>Draft as Email</span>
-      </button>
-      <button type="button" class="action-chip" data-action="pdf" title="Export this regulatory advisory to PDF / Print">
-        <span class="action-chip-icon">📄</span>
-        <span>Export PDF</span>
-      </button>
-      <button type="button" class="action-chip" data-action="copy" title="Copy answer text">
-        <span class="action-chip-icon">📋</span>
-        <span class="chip-copy-label">Copy Text</span>
-      </button>
-    `;
+    // Action Tools (Context-aware, zero duplication)
+    if (!isGreetingMsg) {
+      const actionBarEl = document.createElement("div");
+      actionBarEl.className = "assistant-action-bar";
 
-    // Wire up action chip buttons
-    const oneLineBtn = actionBarEl.querySelector('[data-action="oneline"]');
-    const shorterBtn = actionBarEl.querySelector('[data-action="shorter"]');
-    const emailBtn = actionBarEl.querySelector('[data-action="email"]');
-    const pdfBtn = actionBarEl.querySelector('[data-action="pdf"]');
-    const chipCopyBtn = actionBarEl.querySelector('[data-action="copy"]');
+      let actionButtonsHtml = "";
 
-    if (oneLineBtn) {
-      oneLineBtn.addEventListener("click", () => {
-        executePromptSubmission("Give the bottom-line rule for this in 1 line only.");
-      });
+      if (isOneLineMsg) {
+        actionButtonsHtml = `
+          <button type="button" class="action-chip" data-action="details" title="Read full detailed regulatory clauses">
+            <span class="action-chip-icon">📖</span>
+            <span>View Full Details</span>
+          </button>
+          <button type="button" class="action-chip" data-action="email" title="Format this takeaway into an executive compliance memo">
+            <span class="action-chip-icon">📧</span>
+            <span>Draft as Email</span>
+          </button>
+          <button type="button" class="action-chip" data-action="copy" title="Copy answer to clipboard">
+            <span class="action-chip-icon">📋</span>
+            <span class="chip-copy-label">Copy Text</span>
+          </button>
+        `;
+      } else if (isEmailMsg) {
+        actionButtonsHtml = `
+          <button type="button" class="action-chip" data-action="oneline" title="Get a 1-line takeaway of this email">
+            <span class="action-chip-icon">⚡</span>
+            <span>1-Line Takeaway</span>
+          </button>
+          <button type="button" class="action-chip" data-action="shorter" title="Make this email memo more concise">
+            <span class="action-chip-icon">✂️</span>
+            <span>Make Shorter</span>
+          </button>
+          <button type="button" class="action-chip" data-action="pdf" title="Print or export this email to PDF">
+            <span class="action-chip-icon">📄</span>
+            <span>Export PDF</span>
+          </button>
+          <button type="button" class="action-chip" data-action="copy" title="Copy email text">
+            <span class="action-chip-icon">📋</span>
+            <span class="chip-copy-label">Copy Email</span>
+          </button>
+        `;
+      } else {
+        actionButtonsHtml = `
+          <button type="button" class="action-chip" data-action="oneline" title="Get a direct 1-line bottom-line answer">
+            <span class="action-chip-icon">⚡</span>
+            <span>1-Line Summary</span>
+          </button>
+          <button type="button" class="action-chip" data-action="shorter" title="Make this regulatory answer concise and shorter">
+            <span class="action-chip-icon">✂️</span>
+            <span>Make Shorter</span>
+          </button>
+          <button type="button" class="action-chip" data-action="email" title="Format this guidance into an executive compliance email memo">
+            <span class="action-chip-icon">📧</span>
+            <span>Draft as Email</span>
+          </button>
+          <button type="button" class="action-chip" data-action="copy" title="Copy answer text">
+            <span class="action-chip-icon">📋</span>
+            <span class="chip-copy-label">Copy Text</span>
+          </button>
+        `;
+      }
+
+      actionBarEl.innerHTML = actionButtonsHtml;
+
+      const onelineBtn = actionBarEl.querySelector('[data-action="oneline"]');
+      const detailsBtn = actionBarEl.querySelector('[data-action="details"]');
+      const shorterBtn = actionBarEl.querySelector('[data-action="shorter"]');
+      const emailBtn = actionBarEl.querySelector('[data-action="email"]');
+      const pdfBtn = actionBarEl.querySelector('[data-action="pdf"]');
+      const chipCopyBtn = actionBarEl.querySelector('[data-action="copy"]');
+
+      if (onelineBtn) {
+        onelineBtn.addEventListener("click", () => {
+          executePromptSubmission("Give the bottom-line rule for this in 1 line only.");
+        });
+      }
+      if (detailsBtn) {
+        detailsBtn.addEventListener("click", () => {
+          executePromptSubmission("Please provide the detailed regulatory clauses, specific obligations, and referenced rules for this.");
+        });
+      }
+      if (shorterBtn) {
+        shorterBtn.addEventListener("click", () => {
+          executePromptSubmission("Please make the above regulatory summary concise and shorter.");
+        });
+      }
+      if (emailBtn) {
+        emailBtn.addEventListener("click", () => {
+          executePromptSubmission("Please format the above regulatory compliance guidance into a formal executive compliance email memo with Subject and recipient details.");
+        });
+      }
+      if (pdfBtn) {
+        pdfBtn.addEventListener("click", () => {
+          window.print();
+        });
+      }
+      if (chipCopyBtn) {
+        chipCopyBtn.addEventListener("click", async () => {
+          try {
+            await navigator.clipboard.writeText(answer);
+            const label = chipCopyBtn.querySelector(".chip-copy-label");
+            if (label) {
+              const orig = label.textContent;
+              label.textContent = "Copied!";
+              chipCopyBtn.style.color = "#047857";
+              chipCopyBtn.style.borderColor = "#10b981";
+              setTimeout(() => {
+                label.textContent = orig;
+                chipCopyBtn.style.color = "";
+                chipCopyBtn.style.borderColor = "";
+              }, 2000);
+            }
+          } catch (e) {}
+        });
+      }
+
+      footerEl.appendChild(actionBarEl);
     }
 
-    if (shorterBtn) {
-      shorterBtn.addEventListener("click", () => {
-        executePromptSubmission("Please make the above regulatory summary concise and shorter.");
-      });
+    if (footerEl.children.length > 0) {
+      contentEl.appendChild(footerEl);
     }
-
-    if (emailBtn) {
-      emailBtn.addEventListener("click", () => {
-        executePromptSubmission("Please format the above regulatory compliance guidance into a formal executive compliance email memo with Subject and recipient details.");
-      });
-    }
-
-    if (pdfBtn) {
-      pdfBtn.addEventListener("click", () => {
-        window.print();
-      });
-    }
-
-    if (chipCopyBtn) {
-      chipCopyBtn.addEventListener("click", async () => {
-        try {
-          await navigator.clipboard.writeText(answer);
-          const label = chipCopyBtn.querySelector(".chip-copy-label");
-          if (label) label.textContent = "Copied!";
-          setTimeout(() => {
-            if (label) label.textContent = "Copy Text";
-          }, 2000);
-        } catch (e) {}
-      });
-    }
-
-    contentEl.appendChild(actionBarEl);
 
     messageEl.appendChild(avatarEl);
     messageEl.appendChild(contentEl);
@@ -978,10 +1032,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const systemPrompt = `You are the official CDC Regulatory Compliance AI Assistant for the Central Depository Company of Pakistan (CDC) and SECP regulations.
 You must answer the question strictly and accurately based on the verified regulatory documents and conversation history provided.
-Do not guess, assume, or fabricate any regulation, circular number, penalty, or deadline.
-If the answer cannot be found in the context or prior conversation, say: "I don't know based on the available sources."
-When mentioning specific requirements or financial penalties (e.g. PKR figures, deadlines, percentages), cite the exact document title and rule number verbatim.
-If the user asks a follow-up command (such as "make it shorter", "summarize", "draft as email", "give bullet points"), adapt and transform your previous regulatory answer accurately while retaining all factual circular details, figures, and regulatory citations.`;
+1. DIRECT ANSWER FIRST: Begin immediately with the direct, helpful answer to the user's inquiry. Do not use conversational filler like "Based on the provided documents".
+2. BOLD KEY FIGURES & CITATIONS: Highlight specific financial penalties (PKR), deadlines, capital requirements, and circular numbers in bold.
+3. CONCISE & READABLE: Answer in 1-2 focused paragraphs or clean bullet points. Do NOT dump raw legal documents or repetitive text into the chat.
+4. GROUNDING: If the answer cannot be found in the context or prior conversation, say: "I don't know based on the available sources."
+5. TRANSFORMATION: If asked to shorten, give 1 line, or draft an email, adapt the guidance immediately with zero fluff.`;
 
     let contents = [];
     if (history && history.length > 0) {
@@ -1080,19 +1135,13 @@ If the user asks a follow-up command (such as "make it shorter", "summarize", "d
           rawAnswer = `**⚡ 1-Line Regulatory Takeaway:**\n${cleanSentence.trim()}.`;
         } else {
           const secondChunk = retrievedChunks[1];
+          const cleanSummary = topChunk.text.slice(0, 300).trim();
 
-          rawAnswer = `### Executive Summary\n\nBased on official regulatory provisions in **${topChunk.title}** (Reference: \`${topChunk.doc_id}\`):\n\n${topChunk.text.slice(0, 420).trim()}...\n\n`;
-
-          rawAnswer += `### Key Compliance Directives\n`;
-          rawAnswer += `• **${topChunk.title}**: Mandatory compliance requirement verified on record.\n`;
-          if (secondChunk) {
-            rawAnswer += `• **${secondChunk.title}**: Applicable regulatory framework and depository standards.\n`;
-          }
-
-          rawAnswer += `\n### Detailed Regulatory Excerpts\n\n`;
-          retrievedChunks.forEach((item, idx) => {
-            rawAnswer += `#### Document ${idx + 1}: ${item.title} (\`${item.doc_id}\`)\n${item.text.trim()}\n\n`;
-          });
+          rawAnswer = `### Regulatory Compliance Advisory\n\n` +
+            `Based on verified regulatory records in **${topChunk.title}** (\`${topChunk.doc_id}\`):\n\n` +
+            `• **Primary Mandate:** ${cleanSummary}...\n\n` +
+            (secondChunk ? `• **Depository Standard:** Verified against **${secondChunk.title}** for participant compliance.\n\n` : '') +
+            `*For official reference and full statutory text, see the verified citations linked below.*`;
         }
       } else {
         rawAnswer = "I don't know based on the available sources.";
