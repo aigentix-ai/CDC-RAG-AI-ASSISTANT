@@ -1109,19 +1109,17 @@ CORE OPERATING INSTRUCTIONS:
     // Step C: Try Candidate Gemini Models with timeout
     let rawAnswer = "";
     const candidateModels = [
-      "gemini-3.5-flash-lite",
-      "gemini-3.8-flash",
-      "gemini-flash-latest",
-      "gemini-2.5-flash-lite",
-      "gemini-pro-latest",
-      "gemini-2.5-flash"
+      "gemini-flash-lite-latest",
+      "gemini-3-flash-preview",
+      "gemini-3.1-flash-lite-preview",
+      "gemini-flash-latest"
     ];
 
     for (const model of candidateModels) {
       try {
         const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
         const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 10000);
+        const timeout = setTimeout(() => controller.abort(), 4000);
         const geminiRes = await fetch(geminiUrl, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -1198,7 +1196,16 @@ CORE OPERATING INSTRUCTIONS:
       }
     }
 
-    return { answer: rawAnswer, citations: citations };
+    return {
+      answer: rawAnswer || "I don't know based on the available sources.",
+      citations: citations || [],
+      suggested_options: [
+        "What are the CDS regulations regarding custody and securities?",
+        "What are the key SECP Directives and penalty requirements?",
+        "What are the capital adequacy and net capital balance requirements?",
+        "What is the procedure for participant admission to CDS?"
+      ]
+    };
   }
 
   // --------------------------------------------------------------------------
@@ -1734,7 +1741,7 @@ CORE OPERATING INSTRUCTIONS:
       removeTypingIndicator();
 
       if (!response.ok || (data && data.error)) {
-        // Fallback to client-side RAG before showing any system error
+        // Fallback to client-side RAG before showing any error
         try {
           showTypingIndicator();
           const clientResult = await executeClientSideRag(questionText, historyPayload, previousCitations);
@@ -1752,11 +1759,29 @@ CORE OPERATING INSTRUCTIONS:
 
           appendAssistantMessage(clientResult.answer, clientResult.citations || [], true, null, clientResult.suggested_options || []);
           return;
-        } catch (_) {
+        } catch (clientErr) {
           removeTypingIndicator();
+          console.warn("Client RAG fallback failed:", clientErr);
         }
-        const errorInfo = resolveErrorMessage(response.status, data ? data.error : null, null);
-        appendSystemError(errorInfo.title, errorInfo.message);
+
+        const fallbackOpts = [
+          "What are the CDS regulations regarding custody and securities?",
+          "What are the key SECP Directives and penalty requirements?",
+          "What are the capital adequacy and net capital balance requirements?",
+          "What is the procedure for participant admission to CDS?"
+        ];
+        const fallbackText = "I encountered a temporary connection issue. Please choose one of the verified regulatory compliance topics below, or ask your question:";
+        activeChat.messages.push({
+          role: "model",
+          text: fallbackText,
+          citations: [],
+          suggested_options: fallbackOpts,
+          timestamp: Date.now()
+        });
+        activeChat.updatedAt = Date.now();
+        saveUserChats(currentUserId, currentChats);
+        appendAssistantMessage(fallbackText, [], true, null, fallbackOpts);
+        return;
       } else if (data && typeof data.answer === "string") {
         activeChat.messages.push({
           role: "model",
@@ -1770,8 +1795,13 @@ CORE OPERATING INSTRUCTIONS:
 
         appendAssistantMessage(data.answer, data.citations || [], true, null, data.suggested_options || []);
       } else {
-        const errorInfo = resolveErrorMessage(response.status, null, null);
-        appendSystemError(errorInfo.title, errorInfo.message);
+        const fallbackOpts = [
+          "What are the CDS regulations regarding custody and securities?",
+          "What are the key SECP Directives and penalty requirements?",
+          "What are the capital adequacy and net capital balance requirements?"
+        ];
+        const fallbackText = "I am ready to help. Please select one of the regulatory topics below:";
+        appendAssistantMessage(fallbackText, [], true, null, fallbackOpts);
       }
     } catch (networkError) {
       clearTimeout(timeoutId);
@@ -1793,8 +1823,15 @@ CORE OPERATING INSTRUCTIONS:
         appendAssistantMessage(clientResult.answer, clientResult.citations || [], true, null, clientResult.suggested_options || []);
       } catch (clientErr) {
         removeTypingIndicator();
-        const errorInfo = resolveErrorMessage(0, null, networkError);
-        appendSystemError(errorInfo.title, errorInfo.message);
+        console.warn("Client RAG fallback failed on network error:", clientErr);
+        const fallbackOpts = [
+          "What are the CDS regulations regarding custody and securities?",
+          "What are the key SECP Directives and penalty requirements?",
+          "What are the capital adequacy and net capital balance requirements?",
+          "What is the procedure for participant admission to CDS?"
+        ];
+        const fallbackText = "I am operating in offline compliance mode. Please select one of the verified regulatory inquiries below:";
+        appendAssistantMessage(fallbackText, [], true, null, fallbackOpts);
       }
     } finally {
       activeAbortController = null;
