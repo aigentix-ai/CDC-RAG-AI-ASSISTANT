@@ -482,12 +482,11 @@ CORE OPERATING INSTRUCTIONS:
   // Step C: Call Google Gemini Model with Resilient Fallback Hierarchy
   let rawAnswer = "";
   const candidateModels = [
-    "gemini-3.5-flash-lite",
-    "gemini-3.8-flash",
+    "gemini-flash-lite-latest",
+    "gemini-3-flash-preview",
+    "gemini-3.1-flash-lite-preview",
     "gemini-flash-latest",
-    "gemini-2.5-flash-lite",
-    "gemini-pro-latest",
-    "gemini-2.5-flash"
+    "gemini-pro-latest"
   ];
 
   for (const model of candidateModels) {

@@ -66,14 +66,12 @@ def _get_gemini_client():
 def _call_gemini_model(client, prompt: str) -> str:
     """Executes call to Gemini model, handling both modern and legacy SDKs."""
     candidate_models = [
-        "gemini-3.5-flash-lite",
-        "gemini-3.8-flash",
-        os.getenv("GEMINI_MODEL", "gemini-3.5-flash-lite"),
-        "gemini-flash-latest",
         "gemini-flash-lite-latest",
-        "gemini-2.5-flash-lite",
-        "gemini-pro-latest",
-        "gemini-2.5-flash"
+        "gemini-3-flash-preview",
+        "gemini-3.1-flash-lite-preview",
+        os.getenv("GEMINI_MODEL", "gemini-flash-lite-latest"),
+        "gemini-flash-latest",
+        "gemini-pro-latest"
     ]
     seen = set()
     models_to_try = [m for m in candidate_models if not (m in seen or seen.add(m))]
