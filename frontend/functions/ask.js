@@ -220,12 +220,63 @@ export async function onRequest(context) {
     });
   }
 
-  // 2. Conversational Transformations (Shorten, Email Format, Bullet Points)
+  // 2. Conversational Transformations (1-Line, Shorten, Email Format, Bullet Points)
+  const isOneLine = /\b(1\s*line|one\s*line|single\s*line|in\s*1\s*line\s*only|one\s*liner|1\s*sentence|single\s*sentence)\b/i.test(trimmedLower);
   const isShorten = /\b(make\s+(it\s+)?shorter|shorten(\s+this)?|too\s+long|summarize(\s+this)?|give\s+a\s+summary|concise|tldr|short)\b/i.test(trimmedLower);
   const isEmail = /\b(draft(\s+an?)?\s+email|format\s+(as|into)\s+email|make\s+(it\s+into\s+an?)?\s+email|email\s+format|send\s+as\s+email|write\s+an?\s+email|email)\b/i.test(trimmedLower);
   const isPoints = /\b(bullet\s+points?|in\s+points?|key\s+points?|highlights?)\b/i.test(trimmedLower);
 
   const lastAssistantMsg = [...history].reverse().find(m => (m.role === 'model' || m.role === 'assistant') && m.text && m.text.length > 20);
+
+  if (isOneLine && lastAssistantMsg) {
+    const priorText = lastAssistantMsg.text;
+    const priorCitations = previousCitations.length > 0 ? previousCitations : (lastAssistantMsg.citations || []);
+
+    const oneLinePrompt = `You are the official CDC Regulatory Compliance AI Assistant. Provide EXACTLY A SINGLE DIRECT SENTENCE (maximum 25-30 words) summarizing the bottom-line rule or answer based on this previous guidance:
+"""
+${priorText}
+"""
+Output ONLY that single sentence. Do not include lists, markdown headings, or bullet points.`;
+
+    let oneLineAnswer = "";
+    for (const m of ["gemini-3.5-flash-lite", "gemini-3.8-flash", "gemini-flash-latest", "gemini-2.5-flash-lite", "gemini-pro-latest"]) {
+      try {
+        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent?key=${apiKey}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            contents: [{ role: "user", parts: [{ text: oneLinePrompt }] }],
+            generationConfig: { temperature: 0.1, maxOutputTokens: 120 }
+          })
+        });
+        if (res.ok) {
+          const data = await res.json();
+          const txt = data.candidates?.[0]?.content?.parts?.[0]?.text;
+          if (txt) { oneLineAnswer = txt; break; }
+        }
+      } catch (_) {}
+    }
+
+    if (!oneLineAnswer) {
+      const cleanSentence = priorText.replace(/[*#>`]/g, "").split(/[.\n]/).filter(s => s.trim().length > 25)[0] || priorText.slice(0, 160);
+      oneLineAnswer = cleanSentence.trim() + ".";
+    }
+
+    const singleLineClean = oneLineAnswer.replace(/\n+/g, " ").replace(/^["']|["']$/g, "").trim();
+
+    return new Response(JSON.stringify({
+      answer: `**⚡ 1-Line Regulatory Takeaway:**\n${singleLineClean}`,
+      citations: priorCitations,
+      suggested_options: [
+        "📖 Read Full Details & Clauses",
+        "📧 Draft as Executive Email",
+        "What are the specific penalties?"
+      ]
+    }), {
+      status: 200,
+      headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" }
+    });
+  }
 
   if ((isShorten || isEmail || isPoints) && lastAssistantMsg) {
     const priorText = lastAssistantMsg.text;
@@ -299,7 +350,7 @@ Include:
 - Professional sign-off from ${fromName}`;
 
       let emailAnswer = "";
-      for (const m of ["gemini-flash-latest", "gemini-2.5-flash-lite", "gemini-pro-latest"]) {
+      for (const m of ["gemini-3.5-flash-lite", "gemini-3.8-flash", "gemini-flash-latest", "gemini-2.5-flash-lite", "gemini-pro-latest"]) {
         try {
           const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent?key=${apiKey}`, {
             method: "POST",
@@ -452,6 +503,8 @@ If the user asks a follow-up command (such as "make it shorter", "summarize", "d
   // Step C: Call Google Gemini Model with Resilient Fallback Hierarchy
   let rawAnswer = "";
   const candidateModels = [
+    "gemini-3.5-flash-lite",
+    "gemini-3.8-flash",
     "gemini-flash-latest",
     "gemini-2.5-flash-lite",
     "gemini-pro-latest",
@@ -481,23 +534,30 @@ If the user asks a follow-up command (such as "make it shorter", "summarize", "d
   if (!rawAnswer) {
     if (retrievedChunks.length > 0) {
       const topChunk = retrievedChunks[0];
-      const secondChunk = retrievedChunks[1];
+      if (isOneLine) {
+        const cleanSentence = topChunk.text.replace(/[*#>`]/g, "").split(/[.\n]/).filter(s => s.trim().length > 25)[0] || topChunk.text.slice(0, 160);
+        rawAnswer = `**⚡ 1-Line Regulatory Takeaway:**\n${cleanSentence.trim()}.`;
+      } else {
+        const secondChunk = retrievedChunks[1];
 
-      rawAnswer = `### Executive Summary\n\nBased on official regulatory provisions in **${topChunk.title}** (Reference: \`${topChunk.doc_id}\`):\n\n${topChunk.text.slice(0, 420).trim()}...\n\n`;
+        rawAnswer = `### Executive Summary\n\nBased on official regulatory provisions in **${topChunk.title}** (Reference: \`${topChunk.doc_id}\`):\n\n${topChunk.text.slice(0, 420).trim()}...\n\n`;
 
-      rawAnswer += `### Key Compliance Directives\n`;
-      rawAnswer += `• **${topChunk.title}**: Mandatory compliance requirement verified on record.\n`;
-      if (secondChunk) {
-        rawAnswer += `• **${secondChunk.title}**: Applicable regulatory framework and depository standards.\n`;
+        rawAnswer += `### Key Compliance Directives\n`;
+        rawAnswer += `• **${topChunk.title}**: Mandatory compliance requirement verified on record.\n`;
+        if (secondChunk) {
+          rawAnswer += `• **${secondChunk.title}**: Applicable regulatory framework and depository standards.\n`;
+        }
+
+        rawAnswer += `\n### Detailed Regulatory Excerpts\n\n`;
+        retrievedChunks.forEach((item, idx) => {
+          rawAnswer += `#### Document ${idx + 1}: ${item.title} (\`${item.doc_id}\`)\n${item.text.trim()}\n\n`;
+        });
       }
-
-      rawAnswer += `\n### Detailed Regulatory Excerpts\n\n`;
-      retrievedChunks.forEach((item, idx) => {
-        rawAnswer += `#### Document ${idx + 1}: ${item.title} (\`${item.doc_id}\`)\n${item.text.trim()}\n\n`;
-      });
     } else {
       rawAnswer = "I don't know based on the available sources.";
     }
+  } else if (isOneLine && !rawAnswer.includes("I don't know") && !rawAnswer.startsWith("**⚡ 1-Line")) {
+    rawAnswer = `**⚡ 1-Line Regulatory Takeaway:**\n${rawAnswer.replace(/\n+/g, " ").trim()}`;
   }
 
   // Format citations from retrieved chunks or carry over previous citations

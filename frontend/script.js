@@ -550,11 +550,11 @@ document.addEventListener("DOMContentLoaded", () => {
     let optionsToRender = Array.isArray(suggestedOptions) && suggestedOptions.length > 0 ? suggestedOptions : [];
     if (optionsToRender.length === 0) {
       if (answer.toLowerCase().includes("subject:") && answer.toLowerCase().includes("dear")) {
-        optionsToRender = ["Make this email memo shorter", "Export this email to PDF", "Check specific regulatory penalties"];
+        optionsToRender = ["⚡ 1-Line Summary", "Make this email memo shorter", "Export this email to PDF", "Check specific regulatory penalties"];
       } else if (answer.toLowerCase().includes("executive summary (concise)")) {
-        optionsToRender = ["Format this into an executive email memo", "View specific penalties & fines", "Check submission deadlines"];
+        optionsToRender = ["⚡ 1-Line Summary", "Format this into an executive email memo", "View specific penalties & fines", "Check submission deadlines"];
       } else if (citations && citations.length > 0) {
-        optionsToRender = ["✂️ Make Shorter", "📧 Draft as Email", "⚖️ View Penalties & Fines", "📅 Check Deadlines"];
+        optionsToRender = ["⚡ 1-Line Summary", "✂️ Make Shorter", "📧 Draft as Email", "⚖️ View Penalties & Fines", "📅 Check Deadlines"];
       }
     }
 
@@ -571,7 +571,9 @@ document.addEventListener("DOMContentLoaded", () => {
       optionsBarEl.querySelectorAll(".option-chip").forEach((btn, idx) => {
         btn.addEventListener("click", () => {
           const optText = optionsToRender[idx];
-          if (optText.includes("Make Shorter") || optText.toLowerCase() === "make shorter") {
+          if (optText.includes("1-Line") || optText.toLowerCase().includes("1-line")) {
+            executePromptSubmission("Give the bottom-line rule for this in 1 line only.");
+          } else if (optText.includes("Make Shorter") || optText.toLowerCase() === "make shorter") {
             executePromptSubmission("Please make the above regulatory summary concise and shorter.");
           } else if (optText.includes("Draft as Email") || optText.toLowerCase().includes("email memo") || optText.toLowerCase() === "draft as email") {
             executePromptSubmission("Please format the above regulatory compliance guidance into a formal executive compliance email memo with Subject and recipient details.");
@@ -586,11 +588,15 @@ document.addEventListener("DOMContentLoaded", () => {
       contentEl.appendChild(optionsBarEl);
     }
 
-    // Document Action Chips Bar (Make Shorter, Draft Email, Export PDF, Copy)
+    // Document Action Chips Bar (1-Line Takeaway, Make Shorter, Draft Email, Export PDF, Copy)
     const actionBarEl = document.createElement("div");
     actionBarEl.className = "assistant-action-bar";
     actionBarEl.innerHTML = `
       <span class="action-bar-label">Document Actions:</span>
+      <button type="button" class="action-chip" data-action="oneline" title="Get a direct 1-line bottom-line answer">
+        <span class="action-chip-icon">⚡</span>
+        <span>1-Line Summary</span>
+      </button>
       <button type="button" class="action-chip" data-action="shorter" title="Make this regulatory answer shorter and more concise">
         <span class="action-chip-icon">✂️</span>
         <span>Make Shorter</span>
@@ -610,10 +616,17 @@ document.addEventListener("DOMContentLoaded", () => {
     `;
 
     // Wire up action chip buttons
+    const oneLineBtn = actionBarEl.querySelector('[data-action="oneline"]');
     const shorterBtn = actionBarEl.querySelector('[data-action="shorter"]');
     const emailBtn = actionBarEl.querySelector('[data-action="email"]');
     const pdfBtn = actionBarEl.querySelector('[data-action="pdf"]');
     const chipCopyBtn = actionBarEl.querySelector('[data-action="copy"]');
+
+    if (oneLineBtn) {
+      oneLineBtn.addEventListener("click", () => {
+        executePromptSubmission("Give the bottom-line rule for this in 1 line only.");
+      });
+    }
 
     if (shorterBtn) {
       shorterBtn.addEventListener("click", () => {
@@ -806,12 +819,53 @@ document.addEventListener("DOMContentLoaded", () => {
       };
     }
 
-    // 2. Conversational Transformations (Shorten, Email Format, Bullet Points)
+    // 2. Conversational Transformations (1-Line, Shorten, Email Format, Bullet Points)
+    const isOneLine = /\b(1\s*line|one\s*line|single\s*line|in\s*1\s*line\s*only|one\s*liner|1\s*sentence|single\s*sentence)\b/i.test(trimmedLower);
     const isShorten = /\b(make\s+(it\s+)?shorter|shorten(\s+this)?|too\s+long|summarize(\s+this)?|give\s+a\s+summary|concise|tldr|short)\b/i.test(trimmedLower);
     const isEmail = /\b(draft(\s+an?)?\s+email|format\s+(as|into)\s+email|make\s+(it\s+into\s+an?)?\s+email|email\s+format|send\s+as\s+email|write\s+an?\s+email|email)\b/i.test(trimmedLower);
     const isPoints = /\b(bullet\s+points?|in\s+points?|key\s+points?|highlights?)\b/i.test(trimmedLower);
 
     const lastAssistantMsg = [...history].reverse().find(m => (m.role === 'model' || m.role === 'assistant') && m.text && m.text.length > 20);
+
+    if (isOneLine && lastAssistantMsg) {
+      const priorText = lastAssistantMsg.text;
+      const priorCitations = previousCitations.length > 0 ? previousCitations : (lastAssistantMsg.citations || []);
+
+      let oneLineAnswer = "";
+      const oneLinePrompt = `You are the official CDC Regulatory Compliance AI Assistant. Provide EXACTLY A SINGLE DIRECT SENTENCE (maximum 25-30 words) summarizing the bottom-line rule or answer based on this previous guidance:\n"""\n${priorText}\n"""\nOutput ONLY that single sentence. Do not include lists, markdown headings, or bullet points.`;
+
+      for (const model of ["gemini-3.5-flash-lite", "gemini-3.8-flash", "gemini-flash-latest", "gemini-2.5-flash-lite", "gemini-pro-latest"]) {
+        try {
+          const geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${atob(DEFAULT_B64_KEY)}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ contents: [{ role: "user", parts: [{ text: oneLinePrompt }] }] })
+          });
+          if (geminiRes.ok) {
+            const d = await geminiRes.json();
+            const txt = d.candidates?.[0]?.content?.parts?.[0]?.text;
+            if (txt) { oneLineAnswer = txt; break; }
+          }
+        } catch (_) {}
+      }
+
+      if (!oneLineAnswer) {
+        const cleanSentence = priorText.replace(/[*#>`]/g, "").split(/[.\n]/).filter(s => s.trim().length > 25)[0] || priorText.slice(0, 160);
+        oneLineAnswer = cleanSentence.trim() + ".";
+      }
+
+      const singleLineClean = oneLineAnswer.replace(/\n+/g, " ").replace(/^["']|["']$/g, "").trim();
+
+      return {
+        answer: `**⚡ 1-Line Regulatory Takeaway:**\n${singleLineClean}`,
+        citations: priorCitations,
+        suggested_options: [
+          "📖 Read Full Details & Clauses",
+          "📧 Draft as Executive Email",
+          "What are the specific penalties?"
+        ]
+      };
+    }
 
     if ((isShorten || isEmail || isPoints) && lastAssistantMsg) {
       const priorText = lastAssistantMsg.text;
@@ -821,7 +875,7 @@ document.addEventListener("DOMContentLoaded", () => {
         let shortenedAnswer = "";
         const shortenPrompt = `You are the CDC Regulatory Compliance AI Assistant. Provide a short, clean, 1-2 paragraph executive summary of this previous regulatory guidance, keeping all circular numbers, fines, and deadlines:\n"""\n${priorText}\n"""\nBe direct and concise.`;
 
-        for (const model of ["gemini-flash-latest", "gemini-2.5-flash-lite", "gemini-pro-latest"]) {
+        for (const model of ["gemini-3.5-flash-lite", "gemini-3.8-flash", "gemini-flash-latest", "gemini-2.5-flash-lite", "gemini-pro-latest"]) {
           try {
             const geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${atob(DEFAULT_B64_KEY)}`, {
               method: "POST",
@@ -861,7 +915,7 @@ document.addEventListener("DOMContentLoaded", () => {
         let emailAnswer = "";
         const emailPrompt = `You are the CDC Regulatory Compliance AI Assistant. Format this regulatory compliance guidance into a formal executive compliance email memo:\n"""\n${priorText}\n"""\nTo: ${toName}\nFrom: ${fromName}\nInclude Subject, 1-paragraph summary, Key Obligations bullet points, References, and Sign-off.`;
 
-        for (const model of ["gemini-flash-latest", "gemini-2.5-flash-lite", "gemini-pro-latest"]) {
+        for (const model of ["gemini-3.5-flash-lite", "gemini-3.8-flash", "gemini-flash-latest", "gemini-2.5-flash-lite", "gemini-pro-latest"]) {
           try {
             const geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${atob(DEFAULT_B64_KEY)}`, {
               method: "POST",
@@ -986,6 +1040,8 @@ If the user asks a follow-up command (such as "make it shorter", "summarize", "d
     // Step C: Try Candidate Gemini Models with timeout
     let rawAnswer = "";
     const candidateModels = [
+      "gemini-3.5-flash-lite",
+      "gemini-3.8-flash",
       "gemini-flash-latest",
       "gemini-2.5-flash-lite",
       "gemini-pro-latest",
@@ -1019,23 +1075,30 @@ If the user asks a follow-up command (such as "make it shorter", "summarize", "d
     if (!rawAnswer) {
       if (retrievedChunks.length > 0) {
         const topChunk = retrievedChunks[0];
-        const secondChunk = retrievedChunks[1];
+        if (isOneLine) {
+          const cleanSentence = topChunk.text.replace(/[*#>`]/g, "").split(/[.\n]/).filter(s => s.trim().length > 25)[0] || topChunk.text.slice(0, 160);
+          rawAnswer = `**⚡ 1-Line Regulatory Takeaway:**\n${cleanSentence.trim()}.`;
+        } else {
+          const secondChunk = retrievedChunks[1];
 
-        rawAnswer = `### Executive Summary\n\nBased on official regulatory provisions in **${topChunk.title}** (Reference: \`${topChunk.doc_id}\`):\n\n${topChunk.text.slice(0, 420).trim()}...\n\n`;
+          rawAnswer = `### Executive Summary\n\nBased on official regulatory provisions in **${topChunk.title}** (Reference: \`${topChunk.doc_id}\`):\n\n${topChunk.text.slice(0, 420).trim()}...\n\n`;
 
-        rawAnswer += `### Key Compliance Directives\n`;
-        rawAnswer += `• **${topChunk.title}**: Mandatory compliance requirement verified on record.\n`;
-        if (secondChunk) {
-          rawAnswer += `• **${secondChunk.title}**: Applicable regulatory framework and depository standards.\n`;
+          rawAnswer += `### Key Compliance Directives\n`;
+          rawAnswer += `• **${topChunk.title}**: Mandatory compliance requirement verified on record.\n`;
+          if (secondChunk) {
+            rawAnswer += `• **${secondChunk.title}**: Applicable regulatory framework and depository standards.\n`;
+          }
+
+          rawAnswer += `\n### Detailed Regulatory Excerpts\n\n`;
+          retrievedChunks.forEach((item, idx) => {
+            rawAnswer += `#### Document ${idx + 1}: ${item.title} (\`${item.doc_id}\`)\n${item.text.trim()}\n\n`;
+          });
         }
-
-        rawAnswer += `\n### Detailed Regulatory Excerpts\n\n`;
-        retrievedChunks.forEach((item, idx) => {
-          rawAnswer += `#### Document ${idx + 1}: ${item.title} (\`${item.doc_id}\`)\n${item.text.trim()}\n\n`;
-        });
       } else {
         rawAnswer = "I don't know based on the available sources.";
       }
+    } else if (isOneLine && !rawAnswer.includes("I don't know") && !rawAnswer.startsWith("**⚡ 1-Line")) {
+      rawAnswer = `**⚡ 1-Line Regulatory Takeaway:**\n${rawAnswer.replace(/\n+/g, " ").trim()}`;
     }
 
     const seenDocIds = new Set();
