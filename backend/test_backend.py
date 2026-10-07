@@ -179,5 +179,44 @@ class TestBackendModule(unittest.TestCase):
         self.assertEqual(status["eta"], "Failed")
         self.assertEqual(status["status"], "failed")
 
+    def test_14_typo_correction_and_fuzzy_mapping(self):
+        """Verify typo corrector normalizes misspellings and shorthand into canonical regulatory terms."""
+        from typo_corrector import correct_query_typos, is_chat_history_inquiry
+
+        corrected, changed = correct_query_typos("wht is pennalty for unauthroized trnsfer in cdss?")
+        self.assertTrue(changed)
+        self.assertIn("penalty", corrected)
+        self.assertIn("unauthorized", corrected)
+        self.assertIn("transfer", corrected)
+        self.assertIn("cds", corrected)
+
+        corrected2, changed2 = correct_query_typos("cpaital adeqcy requirments for broker")
+        self.assertTrue(changed2)
+        self.assertIn("capital", corrected2)
+        self.assertIn("adequacy", corrected2)
+        self.assertIn("requirements", corrected2)
+
+        self.assertTrue(is_chat_history_inquiry("what did i ask in last message?"))
+        self.assertTrue(is_chat_history_inquiry("what was my last question?"))
+        self.assertFalse(is_chat_history_inquiry("What is SECP regulation 12?"))
+
+    def test_15_chat_history_recall_bot_memory(self):
+        """Verify chatbot acts with conversational memory for past questions rather than treating it like empty doc search."""
+        history = [
+            {"role": "user", "text": "What is the net capital balance requirement for brokers?"},
+            {"role": "model", "text": "Brokers must maintain a minimum Net Capital Balance of PKR 2.5 million."}
+        ]
+
+        # Recalls previous question accurately
+        res = generate_answer("what did i ask in last message?", [], history=history)
+        self.assertIn("What is the net capital balance requirement for brokers?", res["answer"])
+        self.assertNotEqual(res["answer"], DONT_KNOW_ANSWER)
+
+        # Session start with no history explains politely
+        res_empty = generate_answer("what did i ask in last message?", [], history=[])
+        self.assertIn("start of our conversation", res_empty["answer"].lower())
+        self.assertNotEqual(res_empty["answer"], DONT_KNOW_ANSWER)
+
 if __name__ == "__main__":
     unittest.main()
+

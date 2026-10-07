@@ -49,8 +49,18 @@ def retrieve(query: str, top_k: int = 5) -> List[Dict[str, Any]]:
         return []
 
     actual_k = min(top_k, count)
+
+    search_query = query.strip()
+    try:
+        from typo_corrector import correct_query_typos
+        normalized_q, _ = correct_query_typos(search_query)
+        if normalized_q:
+            search_query = normalized_q
+    except Exception:
+        pass
+
     results = collection.query(
-        query_texts=[query.strip()],
+        query_texts=[search_query],
         n_results=actual_k
     )
 

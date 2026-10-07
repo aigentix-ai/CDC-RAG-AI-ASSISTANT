@@ -816,9 +816,47 @@ document.addEventListener("DOMContentLoaded", () => {
       "wouldn't", "you", "you'd", "you'll", "you're", "you've", "your", "yours", "yourself", "yourselves"
     ]);
 
-    const clean = query.toLowerCase().replace(/[^\w\s]/g, " ");
+    const COMMON_TYPOS = {
+      "wht": "what", "wat": "what", "waht": "what",
+      "hw": "how", "whch": "which", "wich": "which",
+      "pennalty": "penalty", "penalts": "penalties", "penality": "penalty", "penaltys": "penalties",
+      "submision": "submission", "submisson": "submission",
+      "cpaital": "capital", "capitl": "capital", "captial": "capital", "cptl": "capital",
+      "adeqcy": "adequacy", "adequcy": "adequacy", "adequecy": "adequacy",
+      "particpant": "participant", "particpnt": "participant", "partcipant": "participant",
+      "depsoitry": "depository", "deposirty": "depository", "depsoitory": "depository",
+      "regulatins": "regulations", "regultions": "regulations", "regualtions": "regulations",
+      "directves": "directives", "directivs": "directives",
+      "securitis": "securities", "securites": "securities",
+      "accnt": "account", "subaccnt": "sub-account",
+      "transfr": "transfer", "trnsfer": "transfer",
+      "unauthroized": "unauthorized", "unautherized": "unauthorized",
+      "deadlin": "deadline", "deadilne": "deadline", "dedline": "deadline",
+      "complience": "compliance", "complianse": "compliance",
+      "requriment": "requirement", "requirments": "requirements",
+      "prevoius": "previous", "prevous": "previous", "prvious": "previous",
+      "mesage": "message", "messge": "message", "msg": "message",
+      "queston": "question", "qstn": "question", "ques": "question",
+      "answr": "answer", "anwer": "answer",
+      "shorterr": "shorter", "shrt": "shorter",
+      "sumary": "summary", "searchengin": "search engine"
+    };
+
+    function normalizeQuery(str) {
+      if (!str) return "";
+      const words = str.toLowerCase().split(/\s+/);
+      const mapped = words.map(w => {
+        const cleanWord = w.replace(/[^\w-]/g, "");
+        if (COMMON_TYPOS[cleanWord]) return COMMON_TYPOS[cleanWord];
+        return w;
+      });
+      return mapped.join(" ");
+    }
+
+    const norm = normalizeQuery(query);
+    const clean = (query + " " + norm).toLowerCase().replace(/[^\w\s]/g, " ");
     const rawTerms = clean.split(/\s+/).filter(Boolean);
-    const terms = rawTerms.filter(t => !stopwords.has(t) && t.length > 1);
+    const terms = Array.from(new Set(rawTerms.filter(t => !stopwords.has(t) && t.length > 1)));
     if (terms.length === 0) terms.push(...rawTerms);
 
     const scored = [];
@@ -871,6 +909,75 @@ document.addEventListener("DOMContentLoaded", () => {
           "What is the procedure for participant admission to CDS?"
         ]
       };
+    }
+
+    // Conversational Memory Recall (e.g. "what did i ask in last message?")
+    const normQuery = normalizeQuery(trimmedLower);
+    const isChatHistoryInquiry = /\b(what\s+(did|was)\s+(i|we)\s+(ask|say|discuss|type|write|send)|what\s+was\s+my\s+(last|previous|prior|first)\s+(question|message|query|prompt|msg)|what\s+did\s+i\s+just\s+(ask|say|type)|what\s+was\s+the\s+(last|previous)\s+(question|message|inquiry|topic)|what\s+(did\s+i|was\s+my)\s+ask\s+(in\s+)?(the\s+)?(last|previous|prior)\s+(message|msg|turn)|what\s+did\s+i\s+ask|what\s+was\s+i\s+asking|can\s+you\s+remind\s+me\s+what\s+i\s+(asked|said)|what\s+(did|were)\s+we\s+(talk|talking|discuss|discussing)|what\s+have\s+we\s+discussed|recap\s+(our\s+)?(chat|conversation|discussion))\b/i.test(normQuery);
+    const isRepeatInquiry = /\b(repeat\s+(your\s+)?(last\s+|previous\s+)?(answer|response|message)|what\s+did\s+you\s+(just\s+)?(say|answer|reply|state)|say\s+that\s+again|what\s+was\s+your\s+(last|previous)\s+(answer|response))\b/i.test(normQuery);
+
+    if (isChatHistoryInquiry) {
+      const lastUserMsg = [...history].reverse().find(m => m.role === 'user' && m.text && m.text.trim().toLowerCase() !== trimmedLower);
+      const lastAssistantMsgForRecap = [...history].reverse().find(m => (m.role === 'model' || m.role === 'assistant') && m.text && m.text.trim());
+
+      if (lastUserMsg) {
+        const lastUserQueryText = lastUserMsg.text.trim();
+        let recapText = `In your previous message, you asked:\n\n> **"${lastUserQueryText}"**\n\n`;
+        if (lastAssistantMsgForRecap) {
+          const lines = lastAssistantMsgForRecap.text.split("\n").filter(l => l.trim() && !l.startsWith("#") && !l.startsWith("*"));
+          if (lines.length > 0) {
+            const firstSentence = lines[0].split(". ")[0];
+            recapText += `We reviewed: ${firstSentence}.\n\n`;
+          }
+        }
+        recapText += `Would you like me to elaborate on specific clauses, verify statutory penalties, or shorten the guidance?`;
+
+        return {
+          answer: recapText,
+          citations: previousCitations.length > 0 ? previousCitations : (lastAssistantMsgForRecap?.citations || []),
+          suggested_options: [
+            "⚡ 1-Line Summary",
+            "✂️ Make Shorter",
+            "📧 Draft as Email",
+            "What are the specific penalties?"
+          ]
+        };
+      } else {
+        return {
+          answer: `You haven't asked any previous questions in this chat session yet! This is the start of our conversation.\n\nI am your official CDC Regulatory Compliance AI Assistant. How can I assist you with CDC depository rules or SECP directives today?`,
+          citations: [],
+          suggested_options: [
+            "What are the CDS regulations regarding custody and securities?",
+            "What are the key SECP Directives and penalty requirements?",
+            "What are the capital adequacy and net capital balance requirements?",
+            "What is the procedure for participant admission to CDS?"
+          ]
+        };
+      }
+    }
+
+    if (isRepeatInquiry) {
+      const lastAssistantMsgForRepeat = [...history].reverse().find(m => (m.role === 'model' || m.role === 'assistant') && m.text && m.text.trim());
+      if (lastAssistantMsgForRepeat) {
+        return {
+          answer: `Here is what I stated in response to your previous question:\n\n${lastAssistantMsgForRepeat.text}`,
+          citations: previousCitations.length > 0 ? previousCitations : (lastAssistantMsgForRepeat.citations || []),
+          suggested_options: [
+            "⚡ 1-Line Summary",
+            "✂️ Make Shorter",
+            "📧 Draft as Email"
+          ]
+        };
+      } else {
+        return {
+          answer: `There is no previous response to repeat yet in this session! How can I assist you with CDC or SECP compliance today?`,
+          citations: [],
+          suggested_options: [
+            "What are the CDS regulations regarding custody and securities?",
+            "What are the key SECP Directives and penalty requirements?"
+          ]
+        };
+      }
     }
 
     // 2. Conversational Transformations (1-Line, Shorten, Email Format, Bullet Points)
@@ -1033,10 +1140,12 @@ document.addEventListener("DOMContentLoaded", () => {
     const systemPrompt = `You are the official CDC Regulatory Compliance AI Assistant for the Central Depository Company of Pakistan (CDC) and SECP regulations.
 You must answer the question strictly and accurately based on the verified regulatory documents and conversation history provided.
 1. DIRECT ANSWER FIRST: Begin immediately with the direct, helpful answer to the user's inquiry. Do not use conversational filler like "Based on the provided documents".
-2. BOLD KEY FIGURES & CITATIONS: Highlight specific financial penalties (PKR), deadlines, capital requirements, and circular numbers in bold.
-3. CONCISE & READABLE: Answer in 1-2 focused paragraphs or clean bullet points. Do NOT dump raw legal documents or repetitive text into the chat.
-4. GROUNDING: If the answer cannot be found in the context or prior conversation, say: "I don't know based on the available sources."
-5. TRANSFORMATION: If asked to shorten, give 1 line, or draft an email, adapt the guidance immediately with zero fluff.`;
+2. CONVERSATIONAL CONTEXT: If the user refers to previous messages (e.g. "what about that?", "how much is the fine for it?", "tell me more"), use the prior conversation history to resolve pronouns and context while grounding all facts in the verified regulatory context.
+3. TYPO & SPELLING TOLERANCE: The user may have typing errors or misspellings (e.g. "pennalty" -> penalty, "cpaital adeqcy" -> capital adequacy, "particpant" -> participant, "depsoitry" -> depository, "submision" -> submission). Understand their intended regulatory question despite typos.
+4. BOLD KEY FIGURES & CITATIONS: Highlight specific financial penalties (PKR), deadlines, capital requirements, and circular numbers in bold.
+5. CONCISE & READABLE: Answer in 1-2 focused paragraphs or clean bullet points. Do NOT dump raw legal documents or repetitive text into the chat.
+6. GROUNDING: If the answer cannot be found in the context or prior conversation, say: "I don't know based on the available sources."
+7. TRANSFORMATION: If asked to shorten, give 1 line, or draft an email, adapt the guidance immediately with zero fluff.`;
 
     let contents = [];
     if (history && history.length > 0) {
