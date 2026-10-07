@@ -180,6 +180,22 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  function scrollToMessage(element) {
+    if (!element || !chatMain) return;
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        const mainRect = chatMain.getBoundingClientRect();
+        const elRect = element.getBoundingClientRect();
+        // Position top of message comfortably near top of chat area (with 20px padding)
+        const targetScroll = chatMain.scrollTop + (elRect.top - mainRect.top) - 20;
+        chatMain.scrollTo({
+          top: Math.max(0, targetScroll),
+          behavior: "smooth"
+        });
+      }, 40);
+    });
+  }
+
   // --------------------------------------------------------------------------
   // Controls State Manager
   // --------------------------------------------------------------------------
@@ -477,7 +493,9 @@ document.addEventListener("DOMContentLoaded", () => {
           toggleBtn.innerHTML = isExpanded 
             ? `<span class="toggle-icon">▲</span> <span class="toggle-label">Show Less (Collapse)</span>` 
             : `<span class="toggle-icon">📖</span> <span class="toggle-label">Read Full Details & Regulatory Clauses (Expand)</span>`;
-          if (scroll) scrollToBottom();
+          if (isExpanded) {
+            collapsibleEl.scrollIntoView({ behavior: "smooth", block: "nearest" });
+          }
         });
       }
     } else {
@@ -719,7 +737,7 @@ document.addEventListener("DOMContentLoaded", () => {
     messageEl.appendChild(contentEl);
     chatMessages.appendChild(messageEl);
 
-    if (scroll) scrollToBottom();
+    if (scroll) scrollToMessage(messageEl);
   }
 
   // Render System / Error Message
@@ -1431,7 +1449,12 @@ CORE OPERATING INSTRUCTIONS:
     }
 
     renderChatList();
-    scrollToBottom();
+    const lastAssistant = chatMessages ? chatMessages.querySelector(".assistant-message:last-child") : null;
+    if (lastAssistant) {
+      scrollToMessage(lastAssistant);
+    } else {
+      scrollToBottom();
+    }
 
     // Close mobile drawer if open
     document.body.classList.remove("sidebar-open-mobile");
