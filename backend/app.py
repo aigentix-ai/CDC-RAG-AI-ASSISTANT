@@ -118,8 +118,18 @@ def ask():
         history = data.get("history")
         previous_citations = data.get("previous_citations")
 
-        # Step 1: Retrieve relevant context chunks from Chroma
-        retrieved_chunks = retrieve(clean_question, top_k=5)
+        # Step 1: Contextual query rewriting & retrieval
+        retrieval_query = clean_question
+        if history:
+            try:
+                from query_rewriter import rewrite_query_for_retrieval
+                rewritten = rewrite_query_for_retrieval(clean_question, history=history)
+                if rewritten:
+                    retrieval_query = rewritten
+            except Exception:
+                pass
+
+        retrieved_chunks = retrieve(retrieval_query, top_k=5)
 
         # Step 2: Generate answer using LLM with anti-injection protections and multi-turn context
         result = generate_answer(clean_question, retrieved_chunks, history=history, previous_citations=previous_citations)

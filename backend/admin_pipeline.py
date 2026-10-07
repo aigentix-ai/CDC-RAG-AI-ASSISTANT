@@ -55,22 +55,86 @@ def normalize_whitespace(text: str) -> str:
     text = re.sub(r"\n{3,}", "\n\n", text)
     return text.strip()
 
-def chunk_text(text: str, chunk_size: int = TARGET_CHUNK_WORDS, overlap: int = OVERLAP_WORDS) -> List[str]:
+def format_table_as_markdown(table: List[List[Any]]) -> str:
+    """Converts a raw pdfplumber table matrix into clean GitHub Flavored Markdown."""
+    if not table or not any(table):
+        return ""
+    clean_rows = []
+    for row in table:
+        if row and any(cell is not None and str(cell).strip() for cell in row):
+            clean_rows.append([str(c or "").strip().replace("\n", " ") for c in row])
+    if not clean_rows or len(clean_rows) < 2:
+        return ""
+    header = clean_rows[0]
+    lines = ["| " + " | ".join(header) + " |", "| " + " | ".join(["---"] * len(header)) + " |"]
+    for row in clean_rows[1:]:
+        padded = row + [""] * max(0, len(header) - len(row))
+        lines.append("| " + " | ".join(padded[:len(header)]) + " |")
+    return "\n\n" + "\n".join(lines) + "\n\n"
+
+
+def extract_document_date(text: str) -> Optional[str]:
+    """Extracts formal publication or circular issuance date from regulatory text."""
+    patterns = [
+        r'\b(?:dated|date)[:\s]+([0-9]{1,2}(?:st|nd|rd|th)?\s+[A-Za-z]+,?\s+[0-9]{4})\b',
+        r'\b(?:dated|date)[:\s]+([A-Za-z]+\s+[0-9]{1,2},?\s+[0-9]{4})\b',
+        r'\b([0-9]{1,2}\s+[A-Za-z]+\s+[0-9]{4})\b',
+        r'\b(?:Circular\s+No\.?\s+[0-9]+\s+of\s+([0-9]{4}))\b'
+    ]
+    for pat in patterns:
+        m = re.search(pat, text[:3000], re.I)
+        if m:
+            return m.group(1).strip()
+    return None
+
+
+def chunk_text(
+    text: str,
+    chunk_size: int = TARGET_CHUNK_WORDS,
+    overlap: int = OVERLAP_WORDS,
+    title: str = ""
+) -> List[str]:
     """
     Splits text into chunks of roughly chunk_size words with overlap words between consecutive chunks.
+    Prepends contextual document title and detected structural section headers.
     Matches Module 2 contract (~500 words, ~75 words overlap).
     """
     words = text.split()
     if not words:
         return []
+
+    # Detect section headings in the text
+    section_patterns = [
+        r'\b((?:Regulation|Section|Rule|Clause|Part|Chapter)\s+[0-9]+(?:\([0-9a-zA-Z]+\))?(?::[^\n]{1,60})?)\b',
+        r'(?:^|\n)(#{1,3}\s+[^\n]{3,60})'
+    ]
+
+    def find_chunk_section(chunk_str: str) -> str:
+        for pat in section_patterns:
+            m = re.search(pat, chunk_str, re.I)
+            if m:
+                return m.group(1).replace("#", "").strip()
+        return ""
+
     if len(words) <= chunk_size:
-        return [" ".join(words)]
+        body = " ".join(words)
+        if title:
+            sec = find_chunk_section(body)
+            header = f"[Context: {title}" + (f" | {sec}" if sec else "") + "]\n"
+            return [header + body]
+        return [body]
 
     chunks = []
     step = max(1, chunk_size - overlap)
     for i in range(0, len(words), step):
         chunk_words = words[i:i + chunk_size]
-        chunks.append(" ".join(chunk_words))
+        body = " ".join(chunk_words)
+        if title:
+            sec = find_chunk_section(body)
+            header = f"[Context: {title}" + (f" | {sec}" if sec else "") + "]\n"
+            chunks.append(header + body)
+        else:
+            chunks.append(body)
         if i + chunk_size >= len(words):
             break
     return chunks
@@ -157,8 +221,17 @@ def extract_text_from_url(url: str, label: str = "", doc_type: str = "auto") -> 
                 title = str(meta_title).strip()
 
             for page in pdf.pages:
-                page_t = page.extract_text()
-                if page_t:
+                page_t = page.extract_text() or ""
+                try:
+                    tables = page.extract_tables()
+                    if tables:
+                        table_md_blocks = [format_table_as_markdown(tbl) for tbl in tables if tbl]
+                        table_md_blocks = [tbl for tbl in table_md_blocks if tbl]
+                        if table_md_blocks:
+                            page_t += "\n" + "\n".join(table_md_blocks)
+                except Exception:
+                    pass
+                if page_t.strip():
                     pages_text.append(page_t)
 
         joined = "\n".join(pages_text)
@@ -243,8 +316,17 @@ def extract_text_from_file(file_path: Path, original_filename: str, label: str =
                 title = str(meta_title).strip()
 
             for page in pdf.pages:
-                t = page.extract_text()
-                if t:
+                t = page.extract_text() or ""
+                try:
+                    tables = page.extract_tables()
+                    if tables:
+                        table_md_blocks = [format_table_as_markdown(tbl) for tbl in tables if tbl]
+                        table_md_blocks = [tbl for tbl in table_md_blocks if tbl]
+                        if table_md_blocks:
+                            t += "\n" + "\n".join(table_md_blocks)
+                except Exception:
+                    pass
+                if t.strip():
                     pages_text.append(t)
 
         cleaned = normalize_whitespace("\n".join(pages_text))
@@ -321,13 +403,14 @@ def _execute_pipeline_task(
         update_job(job_id, progress=50, message="Text extracted. Chunking content...", title=title)
         time.sleep(0.2)
 
-        # Generate chunks
-        raw_chunks = chunk_text(text)
+        # Generate chunks with structural context header
+        raw_chunks = chunk_text(text, title=title)
         if not raw_chunks:
             raise ValueError("Document yielded 0 chunks after text extraction.")
 
         doc_id = compute_doc_id(source)
         now_iso = get_current_utc_iso()
+        doc_date = extract_document_date(text) or ""
 
         prepared_chunks = []
         for i, chunk_str in enumerate(raw_chunks):
@@ -340,6 +423,7 @@ def _execute_pipeline_task(
                     "title": title,
                     "chunk_index": i,
                     "date_scraped": now_iso,
+                    "doc_date": doc_date,
                     "source_type": source_type
                 }
             })

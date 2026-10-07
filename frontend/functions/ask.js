@@ -94,6 +94,77 @@ function normalizeQuery(str) {
   return mapped.join(" ");
 }
 
+const PRONOUN_OR_FOLLOWUP_PATTERNS = [
+  /\b(what about|how about|what of)\b/i,
+  /\b(for (them|that|it|this|those))\b/i,
+  /\b(penalty for (it|that|this))\b/i,
+  /\b(deadline for (it|that|this))\b/i,
+  /\b(does (this|it|that) apply)\b/i,
+  /\b(can (they|it|he|she))\b/i,
+  /\b(why is that)\b/i,
+  /\b(tell me more( about (that|it))?)\b/i,
+  /\b(what else)\b/i,
+  /\b(explain (that|it|more))\b/i,
+  /\b(how much is (it|the fine|the penalty))\b/i,
+  /\b(is there any exception)\b/i
+];
+
+function isContextDependentQuery(query) {
+  const q = (query || "").trim().toLowerCase();
+  if (q.split(/\s+/).length <= 4) return true;
+  return PRONOUN_OR_FOLLOWUP_PATTERNS.some(pat => pat.test(q));
+}
+
+function extractTopicFromText(text) {
+  let clean = (text || "").trim().replace(/^(what is|what are|how to|can you tell me|show me|explain)\s+/i, "");
+  return clean.replace(/[?!.]+$/, "").trim();
+}
+
+function rewriteQueryForRetrieval(query, history) {
+  if (!query || !query.trim()) return "";
+  const rawQuery = query.trim();
+  if (!history || !Array.isArray(history) || history.length === 0 || !isContextDependentQuery(rawQuery)) {
+    return rawQuery;
+  }
+  let lastUserTurn = null;
+  for (let i = history.length - 1; i >= 0; i--) {
+    const turn = history[i];
+    if (turn && turn.role === "user") {
+      const txt = (turn.text || "").trim();
+      if (txt && txt.toLowerCase() !== rawQuery.toLowerCase() && txt.split(/\s+/).length >= 3) {
+        lastUserTurn = txt;
+        break;
+      }
+    }
+  }
+  if (!lastUserTurn) return rawQuery;
+
+  let priorTopic = extractTopicFromText(lastUserTurn);
+  const matchWhatAbout = rawQuery.match(/\b(?:what|how)\s+about\s+(?:for\s+)?(.+)/i);
+  if (matchWhatAbout && priorTopic) {
+    const newTarget = matchWhatAbout[1].replace(/[?.!\s]+$/, "");
+    const entityWords = ["brokers", "broker", "participants", "participant", "banks", "treasury", "custodians"];
+    let replaced = false;
+    for (const ew of entityWords) {
+      const reg = new RegExp(`\\b${ew}\\b`, "i");
+      if (reg.test(priorTopic)) {
+        priorTopic = priorTopic.replace(reg, newTarget);
+        replaced = true;
+        break;
+      }
+    }
+    return replaced ? priorTopic : `${priorTopic} ${newTarget}`;
+  }
+
+  if (/\b(penalty|fine|punishment|sanctions?)\b/i.test(rawQuery) && priorTopic) {
+    return `penalties for ${priorTopic}`;
+  }
+  if (/\b(deadline|timeframe|due date|submission date)\b/i.test(rawQuery) && priorTopic) {
+    return `submission deadlines for ${priorTopic}`;
+  }
+  return `${priorTopic} ${rawQuery}`;
+}
+
 function retrieveRelevantChunks(query, topK = 5, knowledgeBase = []) {
   const norm = normalizeQuery(query);
   const clean = (query + " " + norm).toLowerCase().replace(/[^\w\s]/g, " ");
@@ -238,9 +309,10 @@ export async function onRequest(context) {
   const history = Array.isArray(payload.history) ? payload.history : [];
   const previousCitations = Array.isArray(payload.previous_citations) ? payload.previous_citations : [];
 
-  // Step A: Retrieve relevant regulatory context from edge knowledge base
+  // Step A: Contextual query rewriting & retrieval from edge knowledge base
   const knowledgeBase = await getKnowledgeBase(request, env);
-  const retrievedChunks = retrieveRelevantChunks(question, 5, knowledgeBase);
+  const retrievalQuery = history.length > 0 ? rewriteQueryForRetrieval(question, history) : question;
+  const retrievedChunks = retrieveRelevantChunks(retrievalQuery, 5, knowledgeBase);
 
   // Conversational metadata checks for session start fallback
   const trimmedLower = question.trim().toLowerCase();
@@ -325,7 +397,9 @@ CORE OPERATING INSTRUCTIONS:
 2. STRICT REGULATORY GROUNDING (ZERO OUTSIDE INFORMATION):
    - For all regulatory, legal, statutory, penalty, or compliance questions: answer STRICTLY and SOLELY based on the verified documents in the RETRIEVED CONTEXT and facts previously verified in the conversation history.
    - Do NOT bring in unverified assumptions, outside laws, or fabricated rules from outside the context.
-   - Highlight specific penalties (PKR amounts), deadlines, and circular numbers in bold.
+   - Quote exact wording or numeric figures for legal penalties, deadlines, and circular numbers in bold.
+   - Mention document publication dates or circular years whenever present in the context.
+   - If a circular indicates that it amends, replaces, or supersedes an older rule, make that amendment clear.
    - If the user asks a regulatory or compliance question that is NOT answerable from the provided context or prior conversation, you MUST respond with EXACTLY:
      "I don't know based on the available sources."
 3. TYPO & INFORMAL LANGUAGE TOLERANCE:

@@ -798,6 +798,114 @@ document.addEventListener("DOMContentLoaded", () => {
     return [];
   }
 
+  const COMMON_TYPOS = {
+    "wht": "what", "wat": "what", "waht": "what",
+    "hw": "how", "whch": "which", "wich": "which",
+    "pennalty": "penalty", "penalts": "penalties", "penality": "penalty", "penaltys": "penalties",
+    "submision": "submission", "submisson": "submission",
+    "cpaital": "capital", "capitl": "capital", "captial": "capital", "cptl": "capital",
+    "adeqcy": "adequacy", "adequcy": "adequacy", "adequecy": "adequacy",
+    "particpant": "participant", "particpnt": "participant", "partcipant": "participant",
+    "depsoitry": "depository", "deposirty": "depository", "depsoitory": "depository",
+    "regulatins": "regulations", "regultions": "regulations", "regualtions": "regulations",
+    "directves": "directives", "directivs": "directives",
+    "securitis": "securities", "securites": "securities",
+    "accnt": "account", "subaccnt": "sub-account",
+    "transfr": "transfer", "trnsfer": "transfer",
+    "unauthroized": "unauthorized", "unautherized": "unauthorized",
+    "deadlin": "deadline", "deadilne": "deadline", "dedline": "deadline",
+    "complience": "compliance", "complianse": "compliance",
+    "requriment": "requirement", "requirments": "requirements",
+    "prevoius": "previous", "prevous": "previous", "prvious": "previous",
+    "mesage": "message", "messge": "message", "msg": "message",
+    "queston": "question", "qstn": "question", "ques": "question",
+    "answr": "answer", "anwer": "answer",
+    "shorterr": "shorter", "shrt": "shorter",
+    "sumary": "summary", "searchengin": "search engine"
+  };
+
+  function normalizeQuery(str) {
+    if (!str) return "";
+    const words = str.toLowerCase().split(/\s+/);
+    const mapped = words.map(w => {
+      const cleanWord = w.replace(/[^\w-]/g, "");
+      if (COMMON_TYPOS[cleanWord]) return COMMON_TYPOS[cleanWord];
+      return w;
+    });
+    return mapped.join(" ");
+  }
+
+  const PRONOUN_OR_FOLLOWUP_PATTERNS = [
+    /\b(what about|how about|what of)\b/i,
+    /\b(for (them|that|it|this|those))\b/i,
+    /\b(penalty for (it|that|this))\b/i,
+    /\b(deadline for (it|that|this))\b/i,
+    /\b(does (this|it|that) apply)\b/i,
+    /\b(can (they|it|he|she))\b/i,
+    /\b(why is that)\b/i,
+    /\b(tell me more( about (that|it))?)\b/i,
+    /\b(what else)\b/i,
+    /\b(explain (that|it|more))\b/i,
+    /\b(how much is (it|the fine|the penalty))\b/i,
+    /\b(is there any exception)\b/i
+  ];
+
+  function isContextDependentQuery(query) {
+    const q = (query || "").trim().toLowerCase();
+    if (q.split(/\s+/).length <= 4) return true;
+    return PRONOUN_OR_FOLLOWUP_PATTERNS.some(pat => pat.test(q));
+  }
+
+  function extractTopicFromText(text) {
+    let clean = (text || "").trim().replace(/^(what is|what are|how to|can you tell me|show me|explain)\s+/i, "");
+    return clean.replace(/[?!.]+$/, "").trim();
+  }
+
+  function rewriteQueryForRetrieval(query, history) {
+    if (!query || !query.trim()) return "";
+    const rawQuery = query.trim();
+    if (!history || !Array.isArray(history) || history.length === 0 || !isContextDependentQuery(rawQuery)) {
+      return rawQuery;
+    }
+    let lastUserTurn = null;
+    for (let i = history.length - 1; i >= 0; i--) {
+      const turn = history[i];
+      if (turn && turn.role === "user") {
+        const txt = (turn.text || "").trim();
+        if (txt && txt.toLowerCase() !== rawQuery.toLowerCase() && txt.split(/\s+/).length >= 3) {
+          lastUserTurn = txt;
+          break;
+        }
+      }
+    }
+    if (!lastUserTurn) return rawQuery;
+
+    let priorTopic = extractTopicFromText(lastUserTurn);
+    const matchWhatAbout = rawQuery.match(/\b(?:what|how)\s+about\s+(?:for\s+)?(.+)/i);
+    if (matchWhatAbout && priorTopic) {
+      const newTarget = matchWhatAbout[1].replace(/[?.!\s]+$/, "");
+      const entityWords = ["brokers", "broker", "participants", "participant", "banks", "treasury", "custodians"];
+      let replaced = false;
+      for (const ew of entityWords) {
+        const reg = new RegExp(`\\b${ew}\\b`, "i");
+        if (reg.test(priorTopic)) {
+          priorTopic = priorTopic.replace(reg, newTarget);
+          replaced = true;
+          break;
+        }
+      }
+      return replaced ? priorTopic : `${priorTopic} ${newTarget}`;
+    }
+
+    if (/\b(penalty|fine|punishment|sanctions?)\b/i.test(rawQuery) && priorTopic) {
+      return `penalties for ${priorTopic}`;
+    }
+    if (/\b(deadline|timeframe|due date|submission date)\b/i.test(rawQuery) && priorTopic) {
+      return `submission deadlines for ${priorTopic}`;
+    }
+    return `${priorTopic} ${rawQuery}`;
+  }
+
   function clientRetrieveChunks(query, topK = 5, kb = []) {
     const stopwords = new Set([
       "a", "about", "above", "after", "again", "against", "all", "am", "an", "and", "any", "are", "aren't",
@@ -815,43 +923,6 @@ document.addEventListener("DOMContentLoaded", () => {
       "where", "where's", "which", "while", "who", "who's", "whom", "why", "why's", "with", "won't", "would",
       "wouldn't", "you", "you'd", "you'll", "you're", "you've", "your", "yours", "yourself", "yourselves"
     ]);
-
-    const COMMON_TYPOS = {
-      "wht": "what", "wat": "what", "waht": "what",
-      "hw": "how", "whch": "which", "wich": "which",
-      "pennalty": "penalty", "penalts": "penalties", "penality": "penalty", "penaltys": "penalties",
-      "submision": "submission", "submisson": "submission",
-      "cpaital": "capital", "capitl": "capital", "captial": "capital", "cptl": "capital",
-      "adeqcy": "adequacy", "adequcy": "adequacy", "adequecy": "adequacy",
-      "particpant": "participant", "particpnt": "participant", "partcipant": "participant",
-      "depsoitry": "depository", "deposirty": "depository", "depsoitory": "depository",
-      "regulatins": "regulations", "regultions": "regulations", "regualtions": "regulations",
-      "directves": "directives", "directivs": "directives",
-      "securitis": "securities", "securites": "securities",
-      "accnt": "account", "subaccnt": "sub-account",
-      "transfr": "transfer", "trnsfer": "transfer",
-      "unauthroized": "unauthorized", "unautherized": "unauthorized",
-      "deadlin": "deadline", "deadilne": "deadline", "dedline": "deadline",
-      "complience": "compliance", "complianse": "compliance",
-      "requriment": "requirement", "requirments": "requirements",
-      "prevoius": "previous", "prevous": "previous", "prvious": "previous",
-      "mesage": "message", "messge": "message", "msg": "message",
-      "queston": "question", "qstn": "question", "ques": "question",
-      "answr": "answer", "anwer": "answer",
-      "shorterr": "shorter", "shrt": "shorter",
-      "sumary": "summary", "searchengin": "search engine"
-    };
-
-    function normalizeQuery(str) {
-      if (!str) return "";
-      const words = str.toLowerCase().split(/\s+/);
-      const mapped = words.map(w => {
-        const cleanWord = w.replace(/[^\w-]/g, "");
-        if (COMMON_TYPOS[cleanWord]) return COMMON_TYPOS[cleanWord];
-        return w;
-      });
-      return mapped.join(" ");
-    }
 
     const norm = normalizeQuery(query);
     const clean = (query + " " + norm).toLowerCase().replace(/[^\w\s]/g, " ");
@@ -903,7 +974,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const isRepeatInquiry = /\b(repeat\s+(your\s+)?(last\s+|previous\s+)?(answer|response|message)|what\s+did\s+you\s+(just\s+)?(say|answer|reply|state)|say\s+that\s+again|what\s+was\s+your\s+(last|previous)\s+(answer|response))\b/i.test(normQuery);
 
     const kb = await getClientKnowledgeBase();
-    const retrievedChunks = clientRetrieveChunks(question, 5, kb);
+    const retrievalQuery = (history && history.length > 0) ? rewriteQueryForRetrieval(question, history) : question;
+    const retrievedChunks = clientRetrieveChunks(retrievalQuery, 5, kb);
 
     // Contract preservation: When chunks are empty AND history is empty, check for initial greeting, chat history inquiry, or return strict fallback
     if (retrievedChunks.length === 0 && (!history || history.length === 0)) {
@@ -968,7 +1040,9 @@ CORE OPERATING INSTRUCTIONS:
 2. STRICT REGULATORY GROUNDING (ZERO OUTSIDE INFORMATION):
    - For all regulatory, legal, statutory, penalty, or compliance questions: answer STRICTLY and SOLELY based on the verified documents in the RETRIEVED CONTEXT and facts previously verified in the conversation history.
    - Do NOT bring in unverified assumptions, outside laws, or fabricated rules from outside the context.
-   - Highlight specific penalties (PKR amounts), deadlines, and circular numbers in bold.
+   - Quote exact wording or numeric figures for legal penalties, deadlines, and circular numbers in bold.
+   - Mention document publication dates or circular years whenever present in the context.
+   - If a circular indicates that it amends, replaces, or supersedes an older rule, make that amendment clear.
    - If the user asks a regulatory or compliance question that is NOT answerable from the provided context or prior conversation, you MUST respond with EXACTLY:
      "I don't know based on the available sources."
 3. TYPO & INFORMAL LANGUAGE TOLERANCE:

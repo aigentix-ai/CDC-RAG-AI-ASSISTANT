@@ -1,0 +1,142 @@
+[
+  {
+    "id": "bench_01",
+    "question": "What is the minimum Net Capital Balance requirement for brokers under SECP rules?",
+    "domain": "capital_adequacy",
+    "is_unanswerable": false,
+    "expected_keywords": ["net capital balance", "broker", "2.5 million"]
+  },
+  {
+    "id": "bench_02",
+    "question": "What are the CDS regulations regarding custody and deposit of securities?",
+    "domain": "cdc_depository",
+    "is_unanswerable": false,
+    "expected_keywords": ["cds", "custody", "securities"]
+  },
+  {
+    "id": "bench_03",
+    "question": "What is the procedure for participant admission to CDS under CDC regulations?",
+    "domain": "cdc_depository",
+    "is_unanswerable": false,
+    "expected_keywords": ["participant", "admission", "cds"]
+  },
+  {
+    "id": "bench_04",
+    "question": "What are the key reporting requirements under SECP Circular 12 of 2025?",
+    "domain": "secp_compliance",
+    "is_unanswerable": false,
+    "expected_keywords": ["circular 12", "reporting"]
+  },
+  {
+    "id": "bench_05",
+    "question": "What are the penalties for unauthorized transfer of securities from client sub-accounts?",
+    "domain": "cdc_depository",
+    "is_unanswerable": false,
+    "expected_keywords": ["unauthorized", "transfer", "sub-account"]
+  },
+  {
+    "id": "bench_06",
+    "question": "How are pledge transactions created and released in the Central Depository System?",
+    "domain": "cdc_depository",
+    "is_unanswerable": false,
+    "expected_keywords": ["pledge", "cds"]
+  },
+  {
+    "id": "bench_07",
+    "question": "What is the capital adequacy ratio requirement for TREC holders?",
+    "domain": "capital_adequacy",
+    "is_unanswerable": false,
+    "expected_keywords": ["capital adequacy", "trec"]
+  },
+  {
+    "id": "bench_08",
+    "question": "What are the statutory deadlines for submitting audited annual accounts to SECP?",
+    "domain": "secp_compliance",
+    "is_unanswerable": false,
+    "expected_keywords": ["audited", "accounts", "deadline"]
+  },
+  {
+    "id": "bench_09",
+    "question": "What happens if a CDS participant fails to maintain the minimum net capital balance?",
+    "domain": "capital_adequacy",
+    "is_unanswerable": false,
+    "expected_keywords": ["suspension", "net capital", "participant"]
+  },
+  {
+    "id": "bench_10",
+    "question": "What are the eligibility criteria for eligible securities to be inducted into CDS?",
+    "domain": "cdc_depository",
+    "is_unanswerable": false,
+    "expected_keywords": ["eligible", "securities", "cds"]
+  },
+  {
+    "id": "bench_11",
+    "question": "Can a CDS participant freeze or unfreeze client accounts without written instruction?",
+    "domain": "cdc_depository",
+    "is_unanswerable": false,
+    "expected_keywords": ["freeze", "instruction", "account"]
+  },
+  {
+    "id": "bench_12",
+    "question": "What is the statutory penalty for non-compliance with SECP circular directives?",
+    "domain": "secp_compliance",
+    "is_unanswerable": false,
+    "expected_keywords": ["penalty", "secp", "circular"]
+  },
+  {
+    "id": "bench_13",
+    "question": "What are the obligations of market intermediaries regarding customer due diligence and AML?",
+    "domain": "secp_compliance",
+    "is_unanswerable": false,
+    "expected_keywords": ["due diligence", "aml", "intermediar"]
+  },
+  {
+    "id": "bench_14",
+    "question": "What is the procedure for an aggrieved participant to file an appeal against CDC disciplinary action?",
+    "domain": "cdc_depository",
+    "is_unanswerable": false,
+    "expected_keywords": ["appeal", "disciplinary"]
+  },
+  {
+    "id": "bench_15",
+    "question": "What are the margin requirements for exposure monitoring under CDC and PSX regulations?",
+    "domain": "capital_adequacy",
+    "is_unanswerable": false,
+    "expected_keywords": ["margin", "exposure"]
+  },
+  {
+    "id": "bench_16",
+    "question": "What is SECP regulation 9999 of 2099 regarding lunar space exploration satellites?",
+    "domain": "unanswerable_fallback",
+    "is_unanswerable": true,
+    "expected_keywords": ["I don't know based on the available sources."]
+  },
+  {
+    "id": "bench_17",
+    "question": "What is the corporate tax rate for automobile manufacturers in Tokyo Japan under SECP?",
+    "domain": "unanswerable_fallback",
+    "is_unanswerable": true,
+    "expected_keywords": ["I don't know based on the available sources."]
+  },
+  {
+    "id": "bench_18",
+    "question": "What is the recipe for baking chocolate brownies according to CDC regulations?",
+    "domain": "unanswerable_fallback",
+    "is_unanswerable": true,
+    "expected_keywords": ["I don't know based on the available sources."]
+  },
+  {
+    "id": "bench_19",
+    "question": "cpaital adeqcy requirments for broker",
+    "domain": "typo_tolerance",
+    "is_unanswerable": false,
+    "expected_keywords": ["capital", "adequacy", "broker"]
+  },
+  {
+    "id": "bench_20",
+    "question": "pennalty for unauthroized transfr of securitis from cdss subaccnt",
+    "domain": "typo_tolerance",
+    "is_unanswerable": false,
+    "expected_keywords": ["transfer", "securities", "sub-account"]
+  }
+]

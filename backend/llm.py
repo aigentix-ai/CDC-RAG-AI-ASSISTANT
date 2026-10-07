@@ -190,6 +190,25 @@ def _parse_llm_response(raw_text: str, chunks_by_id: Dict[str, Dict[str, str]]) 
     except Exception:
         pass
 
+    # Post-generation factual & citation grounding verification
+    if chunks_by_id and answer != DONT_KNOW_ANSWER:
+        try:
+            combined_context = " ".join(
+                (meta.get("text", "") or "") + " " + (meta.get("title", "") or "")
+                for meta in chunks_by_id.values()
+            ).lower()
+
+            # Check specific PKR figures cited in answer
+            pkr_matches = re.findall(r'\b(?:pkr|rs\.?)\s*([0-9,]+(?:\s*(?:million|billion))?)\b', answer, re.I)
+            for pkr_str in pkr_matches:
+                digits_only = re.findall(r'\d+', pkr_str.replace(',', ''))
+                if digits_only and not any(d in combined_context for d in digits_only):
+                    if "Compliance Note:" not in answer:
+                        answer += "\n\n> ⚠️ *Compliance Note: Please verify the exact statutory monetary schedule with official CDC/SECP records.*"
+                    break
+        except Exception:
+            pass
+
     suggested_options: List[str] = []
     if parsed_json and isinstance(parsed_json, dict):
         raw_opts = parsed_json.get("suggested_options", [])
@@ -287,7 +306,8 @@ def generate_answer(question: str, retrieved_chunks: list[dict], history: list[d
                 "doc_id": doc_id,
                 "source_type": src_type,
                 "page_number": page_num,
-                "citation_url": cit_url
+                "citation_url": cit_url,
+                "text": chunk.get("text", "")
             }
 
     # Format chunks into secure XML-sandboxed blocks to prevent indirect prompt injection
@@ -333,7 +353,9 @@ CORE OPERATING INSTRUCTIONS:
 2. STRICT REGULATORY GROUNDING (ZERO OUTSIDE INFORMATION):
    - For all regulatory, legal, statutory, penalty, or compliance questions: answer STRICTLY and SOLELY based on the verified documents in the RETRIEVED CONTEXT below and facts previously verified in the conversation history.
    - Do NOT bring in unverified assumptions, outside laws, or fabricated rules from outside the context.
-   - Highlight specific penalties (PKR amounts), deadlines, and circular numbers in bold.
+   - Quote exact wording or numeric figures for legal penalties, deadlines, and circular numbers in bold.
+   - Mention document publication dates or circular years whenever present in the context.
+   - If a circular indicates that it amends, replaces, or supersedes an older rule, make that amendment clear.
    - If the user asks a regulatory or compliance question that is NOT answerable from the provided context or prior conversation, you MUST respond with EXACTLY:
      "{DONT_KNOW_ANSWER}"
 3. TYPO & INFORMAL LANGUAGE TOLERANCE:
